@@ -22,7 +22,7 @@ julia> using PatentsLens
 
 This package does exactly one thing: Import patent metadata as exported from [Lens.org](https://www.lens.org/) in the jsonlines (`.jsonl`) format to a vector of `Patents.Application`'s. 
 
-Loading data in a file "test.jsonl" looks like this:
+Loading data in a file `test.jsonl` looks like this:
 
 ```julia
 julia> PatentsLens.read("test.jsonl")
