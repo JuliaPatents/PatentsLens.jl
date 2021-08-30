@@ -1,0 +1,3 @@
+# PatentsLens
+
+*Documentation goes here.*
