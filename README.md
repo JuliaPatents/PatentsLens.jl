@@ -2,7 +2,7 @@
 
 [![codecov.io](http://codecov.io/github/jfb-h/PatentsLens.jl/coverage.svg?branch=master)](http://codecov.io/github/jfb-h/PatentsLens.jl?branch=master)
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://jfb-h.github.io/PatentsLens.jl/stable)
-[![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://jfb-h.github.io/PatentsLens.jl/dev)
+[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://jfb-h.github.io/PatentsLens.jl/dev)
 
 
 *A helper package for reading Lens.org patent data for use in Patents.jl.*
