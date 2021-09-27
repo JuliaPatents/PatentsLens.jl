@@ -54,11 +54,13 @@ end
 function Base.convert(::Type{Application}, a::LensApplication)
     Application(
         ApplicationID(a),
-        status(a),
+        status(a).patent_status,
+        type(a),
         inventors(a),
         applicants(a),
         title(a),
         abstract(a),
+        [Claims([first(x.claim_text) for x in c.claims], c.lang) for c in a.claims],
         classification(a),
         [ApplicationID(s) for s in siblings(a)],
         [ApplicationID(c) for c in cites(a)],

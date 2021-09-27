@@ -130,6 +130,23 @@ mutable struct LensFamily
     LensFamily() = new(SimpleFamily(), ExtendedFamily())
 end
 
+mutable struct LegalStatus
+    calculation_log::Vector{String}
+    patent_status::String
+    LegalStatus() = new(String[], "")
+end
+
+mutable struct ClaimText
+    claim_text::Array{String, 1}
+    ClaimText() = new(String[])
+end
+
+mutable struct Claim
+    claims::Array{ClaimText, 1}
+    lang::String
+    Claim() = new(ClaimText[], "")
+end
+
 mutable struct LensApplication
     lens_id::String
     jurisdiction::String
@@ -138,9 +155,11 @@ mutable struct LensApplication
     date_published::Date
     biblio::Biblio
     families::LensFamily
+    legal_status::LegalStatus
     abstract::Array{Abstract, 1}
+    claims::Array{Claim, 1}
     publication_type::String
-    LensApplication() = new("", "", "", "", Date(9999), Biblio(), LensFamily(), Vector{Abstract}(), "")
+    LensApplication() = new("", "", "", "", Date(9999), Biblio(), LensFamily(), LegalStatus(), Abstract[], Claim[], "")
 end
 
 StructTypes.StructType(::Type{ApplicationReference}) = StructTypes.Mutable()
@@ -167,6 +186,9 @@ StructTypes.StructType(::Type{Member}) = StructTypes.Mutable()
 StructTypes.StructType(::Type{SimpleFamily}) = StructTypes.Mutable()
 StructTypes.StructType(::Type{ExtendedFamily}) = StructTypes.Mutable()
 StructTypes.StructType(::Type{LensFamily}) = StructTypes.Mutable()
+StructTypes.StructType(::Type{LegalStatus}) = StructTypes.Mutable()
+StructTypes.StructType(::Type{ClaimText}) = StructTypes.Mutable()
+StructTypes.StructType(::Type{Claim}) = StructTypes.Mutable()
 StructTypes.StructType(::Type{Abstract}) = StructTypes.Mutable()
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Mutable()
 
@@ -175,7 +197,8 @@ jurisdiction(a::LensApplication) = a.jurisdiction
 docnr(a::LensApplication) = a.doc_number
 kind(a::LensApplication) = a.kind
 date(a::LensApplication) = a.date_published
-status(a::LensApplication) = a.publication_type
+status(a::LensApplication) = a.legal_status
+type(a::LensApplication) = a.publication_type
 
 title(a::LensApplication) = a.biblio.invention_title
 abstract(a::LensApplication) = a.abstract

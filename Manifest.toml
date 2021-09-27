@@ -22,9 +22,9 @@ version = "1.0.2"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "1a90210acd935f222ea19657f143004d2c2a1117"
+git-tree-sha1 = "31d0151f5716b655421d9d75b7fa74cc4e744df2"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.38.0"
+version = "3.39.0"
 
 [[DataAPI]]
 git-tree-sha1 = "cc70b17275652eb47bc9e5f81635981f13cea5c8"
@@ -172,7 +172,7 @@ version = "2.0.4"
 
 [[Patents]]
 deps = ["Dates", "Dictionaries", "LightGraphs", "MainPaths", "NamedArrays", "Requires", "SparseArrays", "SplitApplyCombine", "Statistics", "StatsBase", "UUIDs"]
-git-tree-sha1 = "9556e0c65402e2f8a66cc29b22c652aa58b7913e"
+git-tree-sha1 = "857dd0ac666f258d33af6d1308c4b735e8daf87e"
 repo-rev = "master"
 repo-url = "https://github.com/jfb-h/Patents.jl"
 uuid = "d01f8802-a735-4783-851a-d2cff8aa012a"
