@@ -7,7 +7,6 @@ version = "0.1.0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 MainPaths = "f429ff72-55f4-4340-8292-212120acb409"
-Patents = "d01f8802-a735-4783-851a-d2cff8aa012a"
 StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 
 [compat]
