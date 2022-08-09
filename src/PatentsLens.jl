@@ -5,9 +5,8 @@ using JSON3
 using PatentsBase
 using StructTypes
 
-export LensApplication
+export LensApplication, LensTitle
 
-include("helpers.jl")
 include("contents.jl")
 include("applications.jl")
 include("reading.jl")

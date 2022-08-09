@@ -1,4 +1,4 @@
-struct LensLocalizedText
+struct LensLocalizedText # helper type, do not export
     text::String
     lang::String
 end
@@ -6,6 +6,8 @@ StructTypes.StructType(::Type{LensLocalizedText}) = StructTypes.Struct()
 
 text(lt::LensLocalizedText) = lt.text
 lang(lt::LensLocalizedText) = lt.lang
+
+Base.show(io::IO, lt::LensLocalizedText) = print(io, "($(lt.lang)) $(lt.text)")
 
 struct LensTitle <: AbstractTitle
     title::Vector{LensLocalizedText}
@@ -23,6 +25,8 @@ text(::Nothing, lang) = nothing # Suppress errors when calling text() on empty t
 
 PatentsBase.text(t::LensTitle, lang::String) = text(t, lang)
 PatentsBase.languages(t::LensTitle) = lang.(t.title)
+
+Base.show(io::IO, t::LensTitle) = print(io, join(t.title, " / "))
 
 # Alternative implementation using a dictionary wrapper and StructTypes.ArrayType
 # TODO: Implement iterate(x::LensTitle) to allow JSON3 to correctly write LensTitles
