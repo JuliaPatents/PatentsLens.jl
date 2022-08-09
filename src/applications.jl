@@ -17,6 +17,16 @@ struct LensApplication <: AbstractApplication
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 
+lens_id(a::LensApplication) = a.lens_id
+publication_type(a::LensApplication) = a.publication_type
+jurisdiction(a::LensApplication) = a.jurisdiction
+doc_number(a::LensApplication) = a.doc_number
+kind(a::LensApplication) = a.kind
+date_published(a::LensApplication) = a.date_published
+doc_key(a::LensApplication) = a.doc_key
+docdb_id(a::LensApplication) = a.docdb_id
+lang(a::LensApplication) = a.lang
+
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
 
