@@ -1,5 +1,6 @@
 struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
+    parties::LensParties
 end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
@@ -14,6 +15,8 @@ struct LensApplication <: AbstractApplication
     docdb_id::Union{Int, Nothing}
     lang::Union{String, Nothing}
     biblio::LensBiblio
+    abstract::Union{LensAbstract, Nothing}
+    claims::Union{LensClaims, Nothing}
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 
@@ -29,6 +32,8 @@ lang(a::LensApplication) = a.lang
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
+PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
+# PatentsBase.inventors(a::LensApplication) = inventors(a.biblio.parties)
 
 function Base.show(io::IO, a::LensApplication)
     text = "$(a.lens_id) | $(a.date_published) | $(a.jurisdiction)$(a.doc_number)$(a.kind)"

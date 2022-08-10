@@ -11,6 +11,7 @@ export lens_id, publication_type, doc_number, kind, date_published, doc_key,
     docdb_id
 
 include("contents.jl")
+include("parties.jl")
 include("applications.jl")
 include("reading.jl")
 
