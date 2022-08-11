@@ -1,13 +1,14 @@
 struct LensApplicationReference # helper type, do not export
     jurisdiction::String
     doc_number::String
-    kind::String
+    kind::Union{String, Nothing}
     date::Union{Date, Nothing}
 end
 StructTypes.StructType(::Type{LensApplicationReference}) = StructTypes.Struct()
 
 function Base.show(io::IO, ar::LensApplicationReference)
     date = ar.date !== nothing ? ar.date : "????-??-??"
+    kind = ar.kind !== nothing ? ar.kind : "?"
     print(io, "$date | $(ar.jurisdiction)$(ar.doc_number)$(ar.kind)")
 end
 
@@ -23,16 +24,19 @@ function Base.show(io::IO, pci::LensPatentCitationInner)
 end
 
 struct LensPatentCitation <: AbstractPatentCitation
-    sequence::Int
+    sequence::Union{Int, Nothing}
     patcit::LensPatentCitationInner
-    cited_phase::String
+    cited_phase::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensPatentCitation}) = StructTypes.Struct()
 
 PatentsBase.phase(pc::LensPatentCitation) = pc.cited_phase
 
-Base.show(io::IO, pc::LensPatentCitation) =
-    print(io, "$(pc.cited_phase) $(pc.sequence): $(pc.patcit)")
+function Base.show(io::IO, pc::LensPatentCitation)
+    phase = pc.cited_phase !== nothing ? pc.cited_phase : "???"
+    seq = pc.sequence !== nothing ? pc.sequence : "?"
+    print(io, "$phase $seq: $(pc.patcit)")
+end
 
 struct LensNPLCitationInner # helper type, do not export
     text::String
@@ -42,18 +46,20 @@ end
 StructTypes.StructType(::Type{LensNPLCitationInner}) = StructTypes.Struct()
 
 struct LensNPLCitation <: AbstractNPLCitation
-    sequence::Int
+    sequence::Union{Int, Nothing}
     nplcit::LensNPLCitationInner
-    cited_phase::String
+    cited_phase::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensNPLCitation}) = StructTypes.Struct()
 
 function Base.show(io::IO, nc::LensNPLCitation)
     doi = PatentsBase.doi(nc)
+    phase = nc.cited_phase !== nothing ? nc.cited_phase : "???"
+    seq = nc.sequence !== nothing ? nc.sequence : "?"
     if doi !== nothing
-        print(io, "$(nc.cited_phase) $(nc.sequence): https://doi.org/$(doi)")
+        print(io, "$phase $seq: https://doi.org/$(doi)")
     else
-        print(io, "$(nc.cited_phase) $(nc.sequence): $(nc.nplcit.text)")
+        print(io, "$phase $seq: $(nc.nplcit.text)")
     end
 end
 
@@ -70,7 +76,7 @@ end
 StructTypes.StructType(::Type{LensCitations}) = StructTypes.Struct()
 
 citations(c::LensCitations) = c.citations
-citations(::Nothing) = nothing
+citations(::Nothing) = []
 
 count_citations(c::LensCitations) = size(citations(c), 1)
 count_citations(::Nothing) = 0
