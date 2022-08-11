@@ -2,6 +2,8 @@ struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
     parties::LensParties
     references_cited::Union{LensCitations, Nothing}
+    classifications_ipcr::Union{LensIPCRClassifications, Nothing}
+    classifications_cpc::Union{LensCPCClassifications, Nothing}
 end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
@@ -60,4 +62,14 @@ end
 function PatentsBase.npl_citations(a::LensApplication)
     filtered = filter(app -> app isa LensNPLCitation, PatentsBase.citations(a))
     Vector{LensNPLCitation}(filtered)
+end
+
+function PatentsBase.classification(::IPC, a::LensApplication)
+    classification = a.biblio.classifications_ipcr
+    isnothing(classification) ? [] : all(classification)
+end
+
+function PatentsBase.classification(::CPC, a::LensApplication)
+    classification = a.biblio.classifications_cpc
+    isnothing(classification) ? [] : all(classification)
 end
