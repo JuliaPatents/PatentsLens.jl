@@ -5,10 +5,16 @@ using JSON3
 using PatentsBase
 using StructTypes
 
-export LensApplication, LensTitle
-
+# Content
+export LensTitle, LensAbstract, LensClaim, LensClaims
+# Citations
+export LensNPLCitation, LensPatentCitation
+# Parties
+export LensApplicant, LensInventor
+# Documents
+export LensApplication
 export lens_id, publication_type, doc_number, kind, date_published, doc_key,
-    docdb_id
+    docdb_id, language
 
 include("contents.jl")
 include("parties.jl")
