@@ -197,7 +197,7 @@ version = "0.1.0"
 
 [[PatentsBase]]
 deps = ["Dates"]
-git-tree-sha1 = "46350fffa7549f01b8e379d7a9a1fcfb117b1c37"
+git-tree-sha1 = "a59f89a3ea7373696055831b0d50fe6ef7a9416d"
 repo-rev = "main"
 repo-url = "https://github.com/JuliaPatents/PatentsBase.jl"
 uuid = "b32246e4-6301-4a4b-8d75-0b3972dc1401"
