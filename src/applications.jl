@@ -1,6 +1,7 @@
 struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
     parties::LensParties
+    references_cited::Union{LensCitations, Nothing}
 end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
@@ -34,6 +35,7 @@ PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
 PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
 # PatentsBase.inventors(a::LensApplication) = inventors(a.biblio.parties)
+PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
 
 function Base.show(io::IO, a::LensApplication)
     text = "$(a.lens_id) | $(a.date_published) | $(a.jurisdiction)$(a.doc_number)$(a.kind)"
