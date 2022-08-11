@@ -30,25 +30,23 @@ date_published(a::LensApplication) = a.date_published
 doc_key(a::LensApplication) = a.doc_key
 docdb_id(a::LensApplication) = a.docdb_id
 lang(a::LensApplication) = a.lang
-
-PatentsBase.title(a::LensApplication) = a.biblio.invention_title
-PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
-PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
-# PatentsBase.inventors(a::LensApplication) = inventors(a.biblio.parties)
-PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
-function PatentsBase.patent_citations(a::LensApplication)
-    filtered = filter(app -> app isa LensPatentCitation, PatentsBase.citations(a))
-    Vector{LensPatentCitation}(filtered)
-end
-function PatentsBase.npl_citations(a::LensApplication)
-    filtered = filter(app -> app isa LensNPLCitation, PatentsBase.citations(a))
-    Vector{LensNPLCitation}(filtered)
-end
 count_citations(a::LensApplication) = count_citations(a.biblio.references_cited)
 count_patent_citations(a::LensApplication) = count_patent_citations(a.biblio.references_cited)
 count_npl_citations(a::LensApplication) = count_npl_citations(a.biblio.references_cited)
 
-function Base.show(io::IO, a::LensApplication)
-    text = "$(a.lens_id) | $(a.date_published) | $(a.jurisdiction)$(a.doc_number)$(a.kind)"
-    print(io, text)
+PatentsBase.title(a::LensApplication) = a.biblio.invention_title
+PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
+
+PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
+
+PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
+
+function PatentsBase.patent_citations(a::LensApplication)
+    filtered = filter(app -> app isa LensPatentCitation, PatentsBase.citations(a))
+    Vector{LensPatentCitation}(filtered)
+end
+
+function PatentsBase.npl_citations(a::LensApplication)
+    filtered = filter(app -> app isa LensNPLCitation, PatentsBase.citations(a))
+    Vector{LensNPLCitation}(filtered)
 end
