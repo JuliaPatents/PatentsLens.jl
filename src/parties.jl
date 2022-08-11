@@ -3,12 +3,14 @@ struct LensExtractedName # helper type, do not export
 end
 StructTypes.StructType(::Type{LensExtractedName}) = StructTypes.Struct()
 
+"""Struct representing a patent applicant in the Lens.org format"""
 struct LensApplicant <: AbstractApplicant
     residence::Union{String, Nothing}
     extracted_name::LensExtractedName
 end
 StructTypes.StructType(::Type{LensApplicant}) = StructTypes.Struct()
 
+"""Struct representing a patent inventor in the Lens.org format"""
 struct LensInventor <: AbstractInventor
     residence::Union{String, Nothing}
     extracted_name::LensExtractedName

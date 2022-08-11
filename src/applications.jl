@@ -5,6 +5,7 @@ struct LensBiblio # helper type, do not export
 end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
+"""Struct representing a patent application retrieved from Lens.org"""
 struct LensApplication <: AbstractApplication
     lens_id::String
     publication_type::String
@@ -21,15 +22,25 @@ struct LensApplication <: AbstractApplication
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 
-lens_id(a::LensApplication) = a.lens_id
-publication_type(a::LensApplication) = a.publication_type
-jurisdiction(a::LensApplication) = a.jurisdiction
-doc_number(a::LensApplication) = a.doc_number
-kind(a::LensApplication) = a.kind
-date_published(a::LensApplication) = a.date_published
-doc_key(a::LensApplication) = a.doc_key
-docdb_id(a::LensApplication) = a.docdb_id
-language(a::LensApplication) = a.lang
+"""Return a `String` with the unique Lens ID of application `a`"""
+lens_id(a::LensApplication)::String = a.lens_id
+"""Return a `String` with the document type of application `a`"""
+publication_type(a::LensApplication)::String = a.publication_type
+"""Return a `String` with the country code of the filing jurisdiction for application `a`"""
+jurisdiction(a::LensApplication)::String = a.jurisdiction
+"""Return a `String` with the jurisdiction-specific document number of application `a`"""
+doc_number(a::LensApplication)::String = a.doc_number
+"""Return a `String` with the kind code of application `a`"""
+kind(a::LensApplication)::String = a.kind
+"""Return the `Date` of publication of application `a`"""
+date_published(a::LensApplication)::Date = a.date_published
+"""Return a `String` with the full document key of application `a`"""
+doc_key(a::LensApplication)::String = a.doc_key
+"""Return an `Int` representing the database ID of application `a`, or `nothing` if the field is missing"""
+docdb_id(a::LensApplication)::Union{Int, Nothing} = a.docdb_id
+"""Return a `String` with the language code of application `a`, or `nothing` if the field is missing"""
+language(a::LensApplication)::Union{String, Nothing} = a.lang
+
 count_citations(a::LensApplication) = count_citations(a.biblio.references_cited)
 count_patent_citations(a::LensApplication) = count_patent_citations(a.biblio.references_cited)
 count_npl_citations(a::LensApplication) = count_npl_citations(a.biblio.references_cited)

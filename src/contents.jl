@@ -4,6 +4,7 @@ struct LensLocalizedText # helper type, do not export
 end
 StructTypes.StructType(::Type{LensLocalizedText}) = StructTypes.Struct()
 
+"""Struct representing the title of a patent application in the Lens.org format"""
 struct LensTitle <: AbstractTitle
     title::Vector{LensLocalizedText}
 end
@@ -12,6 +13,7 @@ StructTypes.lower(t::LensTitle) = t.title
 StructTypes.lowertype(::Type{LensTitle}) = Vector{LensLocalizedText}
 StructTypes.construct(::Type{LensTitle}, v::Vector{LensLocalizedText}) = LensTitle(v)
 
+"""Struct representing the abstract or short description of a patent application in the Lens.org format"""
 struct LensAbstract <: AbstractDescription
     abstract::Vector{LensLocalizedText}
 end
@@ -20,6 +22,7 @@ StructTypes.lower(a::LensAbstract) = a.abstract
 StructTypes.lowertype(::Type{LensAbstract}) = Vector{LensLocalizedText}
 StructTypes.construct(::Type{LensAbstract}, v::Vector{LensLocalizedText}) = LensAbstract(v)
 
+"""Struct representing a single patent claim in the Lens.org format"""
 struct LensClaim <: AbstractClaim
     claim_text::Vector{String}
 end
@@ -31,6 +34,7 @@ struct LensLocalizedClaims # Helper type, do not export
 end
 StructTypes.StructType(::Type{LensLocalizedClaims}) = StructTypes.Struct()
 
+"""Struct representing all individual patent claims of a patent application in the Lens.org format"""
 struct LensClaims <: AbstractClaims
     claims::Vector{LensLocalizedClaims}
 end

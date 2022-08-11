@@ -12,6 +12,7 @@ struct LensPatentCitationInner # helper type, do not export
 end
 StructTypes.StructType(::Type{LensPatentCitationInner}) = StructTypes.Struct()
 
+"""Struct representing a patent citation in the Lens.org format"""
 struct LensPatentCitation <: AbstractPatentCitation
     sequence::Union{Int, Nothing}
     patcit::LensPatentCitationInner
@@ -26,6 +27,7 @@ struct LensNPLCitationInner # helper type, do not export
 end
 StructTypes.StructType(::Type{LensNPLCitationInner}) = StructTypes.Struct()
 
+"""Struct representing a non-patent literature (NPL) citation in the Lens.org format"""
 struct LensNPLCitation <: AbstractNPLCitation
     sequence::Union{Int, Nothing}
     nplcit::LensNPLCitationInner
