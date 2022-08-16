@@ -1,21 +1,22 @@
-struct LensApplicationReference # helper type, do not export
+struct LensDocumentID # helper type, do not export
     jurisdiction::String
     doc_number::String
     kind::Union{String, Nothing}
     date::Union{Date, Nothing}
 end
-StructTypes.StructType(::Type{LensApplicationReference}) = StructTypes.Struct()
+StructTypes.StructType(::Type{LensDocumentID}) = StructTypes.Struct()
 
-struct LensPatentCitationInner # helper type, do not export
-    document_id::LensApplicationReference
+"""Struct representing a reference to a patent application in the Lens.org format"""
+struct LensApplicationReference
+    document_id::LensDocumentID
     lens_id::Union{String, Nothing}
 end
-StructTypes.StructType(::Type{LensPatentCitationInner}) = StructTypes.Struct()
+StructTypes.StructType(::Type{LensApplicationReference}) = StructTypes.Struct()
 
 """Struct representing a patent citation in the Lens.org format"""
 struct LensPatentCitation <: AbstractPatentCitation
     sequence::Union{Int, Nothing}
-    patcit::LensPatentCitationInner
+    patcit::LensApplicationReference
     cited_phase::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensPatentCitation}) = StructTypes.Struct()
@@ -45,10 +46,12 @@ StructTypes.StructType(::Type{LensCitations}) = StructTypes.Struct()
 
 """Struct representing a forward citation ("cited by"-entry) in the Lens.org format"""
 struct LensForwardCitation <: AbstractPatentCitation
-    document_id::LensApplicationReference
-    lens_id::Union{String, Nothing}
+    ref::LensApplicationReference
 end
-StructTypes.StructType(::Type{LensForwardCitation}) = StructTypes.Struct()    
+StructTypes.StructType(::Type{LensForwardCitation}) = StructTypes.CustomStruct()
+StructTypes.lower(fc::LensForwardCitation) = fc.ref
+StructTypes.lowertype(::Type{LensForwardCitation}) = LensApplicationReference
+StructTypes.construct(::Type{LensForwardCitation}, ar::LensApplicationReference) = LensForwardCitation(ar)
 
 struct LensForwardCitations # helper type, do not export
     patents::Union{Vector{LensForwardCitation}, Nothing}

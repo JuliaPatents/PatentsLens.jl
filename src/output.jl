@@ -5,15 +5,15 @@ Base.show(io::IO, c::LensClaim) = print(io, join(c.claim_text, "; "))
 Base.show(io::IO, c::LensLocalizedClaims) = print(io, "($(c.lang))\n" * join(c.claims, "\n"))
 Base.show(io::IO, c::LensClaims) = print(io, join(c.claims, "\n"))
 
-function Base.show(io::IO, ar::LensApplicationReference)
-    date = ar.date !== nothing ? ar.date : "????-??-??"
-    kind = ar.kind !== nothing ? ar.kind : "?"
-    print(io, "$date | $(ar.jurisdiction)$(ar.doc_number)$(ar.kind)")
+function Base.show(io::IO, id::LensDocumentID)
+    date = id.date !== nothing ? id.date : "????-??-??"
+    kind = id.kind !== nothing ? id.kind : "?"
+    print(io, "$date | $(id.jurisdiction)$(id.doc_number)$(id.kind)")
 end
 
-function Base.show(io::IO, pci::LensPatentCitationInner)
-    id = pci.lens_id !== nothing ? pci.lens_id : "???-???-???-???-???"
-    print(io, "$id | $(pci.document_id)")
+function Base.show(io::IO, ar::LensApplicationReference)
+    id = ar.lens_id !== nothing ? ar.lens_id : "???-???-???-???-???"
+    print(io, "$id | $(ar.document_id)")
 end
 
 function Base.show(io::IO, pc::LensPatentCitation)
@@ -33,10 +33,7 @@ function Base.show(io::IO, nc::LensNPLCitation)
     end
 end
 
-function Base.show(io::IO, fc::LensForwardCitation)
-    id = fc.lens_id !== nothing ? fc.lens_id : "???-???-???-???-???"
-    print(io, "$id | $(fc.document_id)")
-end
+Base.show(io::IO, fc::LensForwardCitation) = show(io, fc.ref)
 
 function Base.show(io::IO, a::LensApplication)
     text = "$(a.lens_id) | $(a.date_published) | $(a.jurisdiction)$(a.doc_number)$(a.kind)"

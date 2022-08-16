@@ -69,13 +69,13 @@ all(lc::LensLocalizedClaims) = lc.claims
 PatentsBase.text(::Nothing, lang) = nothing
 PatentsBase.text(a::LensAbstract, lang::String) = text(a, lang)
 PatentsBase.text(t::LensTitle, lang::String) = text(t, lang)
-PatentsBase.text(c::LensClaim, lang::String) = throw(ArgumentError("LensClaim is not individually localized"))
+PatentsBase.text(::LensClaim, ::String) = throw(ArgumentError("LensClaim is not individually localized"))
 PatentsBase.text(c::LensClaims, lang::String) = string(localized_claims(c, lang))
 
 PatentsBase.languages(::Nothing) = nothing
 PatentsBase.languages(a::LensAbstract) = lang.(a.abstract)
 PatentsBase.languages(t::LensTitle) = lang.(t.title)
-PatentsBase.languages(c::LensClaim) = throw(ArgumentError("LensClaim is not individually localized"))
+PatentsBase.languages(::LensClaim) = throw(ArgumentError("LensClaim is not individually localized"))
 PatentsBase.languages(c::LensClaims) = filter(l -> l !== nothing, lang.(c.claims)) |> unique
 
 PatentsBase.all(c::LensClaims) = reduce(vcat, all.(c.claims))

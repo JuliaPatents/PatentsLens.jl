@@ -8,6 +8,18 @@ struct LensBiblio # helper type, do not export
 end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
+struct LensFamilyReference # Helper type, do not export
+    members::Vector{LensApplicationReference}
+    size::Int
+end
+StructTypes.StructType(::Type{LensFamilyReference}) = StructTypes.Struct()
+
+struct LensFamilies # Helper type, do not export
+    simple_family::Union{LensFamilyReference, Nothing}
+    extended_family::Union{LensFamilyReference, Nothing}
+end
+StructTypes.StructType(::Type{LensFamilies}) = StructTypes.Struct()
+
 """Struct representing a patent application retrieved from Lens.org"""
 struct LensApplication <: AbstractApplication
     lens_id::String
@@ -22,6 +34,7 @@ struct LensApplication <: AbstractApplication
     biblio::LensBiblio
     abstract::Union{LensAbstract, Nothing}
     claims::Union{LensClaims, Nothing}
+    families::LensFamilies
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 
@@ -47,6 +60,13 @@ language(a::LensApplication)::Union{String, Nothing} = a.lang
 count_citations(a::LensApplication) = count_citations(a.biblio.references_cited)
 count_patent_citations(a::LensApplication) = count_patent_citations(a.biblio.references_cited)
 count_npl_citations(a::LensApplication) = count_npl_citations(a.biblio.references_cited)
+
+members(::Nothing) = []
+members(f::LensFamilyReference) = f.members
+family_size(::Nothing) = 0
+family_size(f::LensFamilyReference) = f.size
+
+siblings(a::LensApplication)::Vector{LensApplicationReference} = members(a.families.simple_family)
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)

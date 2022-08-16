@@ -12,7 +12,7 @@ export LensNPLCitation, LensPatentCitation
 # Parties
 export LensApplicant, LensInventor
 # Documents
-export LensApplication
+export LensApplication, LensApplicationReference
 export lens_id, publication_type, doc_number, kind, date_published, doc_key,
     docdb_id, language
 
