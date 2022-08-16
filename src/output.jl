@@ -33,6 +33,11 @@ function Base.show(io::IO, nc::LensNPLCitation)
     end
 end
 
+function Base.show(io::IO, fc::LensForwardCitation)
+    id = fc.lens_id !== nothing ? fc.lens_id : "???-???-???-???-???"
+    print(io, "$id | $(fc.document_id)")
+end
+
 function Base.show(io::IO, a::LensApplication)
     text = "$(a.lens_id) | $(a.date_published) | $(a.jurisdiction)$(a.doc_number)$(a.kind)"
     print(io, text)

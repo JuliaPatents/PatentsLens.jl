@@ -2,6 +2,7 @@ struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
     parties::LensParties
     references_cited::Union{LensCitations, Nothing}
+    cited_by::Union{LensForwardCitations, Nothing}
     classifications_ipcr::Union{LensIPCRClassifications, Nothing}
     classifications_cpc::Union{LensCPCClassifications, Nothing}
 end
@@ -53,6 +54,8 @@ PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
 PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
 
 PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
+
+PatentsBase.citedby(a::LensApplication) = citations(a.biblio.cited_by)
 
 function PatentsBase.patent_citations(a::LensApplication)
     filtered = filter(app -> app isa LensPatentCitation, PatentsBase.citations(a))

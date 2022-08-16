@@ -43,11 +43,26 @@ struct LensCitations # helper type, do not export
 end
 StructTypes.StructType(::Type{LensCitations}) = StructTypes.Struct()
 
+"""Struct representing a forward citation ("cited by"-entry) in the Lens.org format"""
+struct LensForwardCitation <: AbstractPatentCitation
+    document_id::LensApplicationReference
+    lens_id::Union{String, Nothing}
+end
+StructTypes.StructType(::Type{LensForwardCitation}) = StructTypes.Struct()    
+
+struct LensForwardCitations # helper type, do not export
+    patents::Union{Vector{LensForwardCitation}, Nothing}
+    patent_count::Union{Int, Nothing}
+end
+StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()   
+
 citations(::Nothing) = []
 citations(c::LensCitations) = c.citations
+citations(c::LensForwardCitations) = c.patents !== nothing ? c.patents : []
 
 count_citations(::Nothing) = 0
 count_citations(c::LensCitations) = size(citations(c), 1)
+count_citations(c::LensForwardCitations) = size(citations(c), 1)
 
 count_patent_citations(::Nothing) = 0
 function count_patent_citations(c::LensCitations)
