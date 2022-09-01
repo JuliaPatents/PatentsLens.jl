@@ -13,8 +13,8 @@ export LensNPLCitation, LensPatentCitation
 export LensApplicant, LensInventor
 # Documents
 export LensApplication, LensApplicationReference
-export lens_id, publication_type, doc_number, kind, date_published, doc_key,
-    docdb_id, language
+# Families
+export LensFamily, aggregate_families
 
 include("contents.jl")
 include("parties.jl")
@@ -23,5 +23,6 @@ include("classifications.jl")
 include("applications.jl")
 include("reading.jl")
 include("output.jl")
+include("families.jl")
 
 end

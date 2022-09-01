@@ -57,9 +57,11 @@ struct LensForwardCitations # helper type, do not export
     patents::Union{Vector{LensForwardCitation}, Nothing}
     patent_count::Union{Int, Nothing}
 end
-StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()   
+StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()
 
-citations(::Nothing) = []
+id(r::LensApplicationReference) = r.document_id
+
+citations(::Nothing) = Vector{Union{LensPatentCitation, LensNPLCitation}}()
 citations(c::LensCitations) = c.citations
 citations(c::LensForwardCitations) = c.patents !== nothing ? c.patents : []
 
