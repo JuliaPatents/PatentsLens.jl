@@ -1,4 +1,5 @@
-struct LensDocumentID # helper type, do not export
+"""Struct implementation of `PatentsBase.AbstractApplicationID` in the Lens.org format"""
+struct LensDocumentID <: AbstractApplicationID
     jurisdiction::String
     doc_number::String
     kind::Union{String, Nothing}
@@ -7,7 +8,7 @@ end
 StructTypes.StructType(::Type{LensDocumentID}) = StructTypes.Struct()
 
 """Struct representing a reference to a patent application in the Lens.org format"""
-struct LensApplicationReference
+struct LensApplicationReference <: AbstractApplicationID
     document_id::LensDocumentID
     lens_id::Union{String, Nothing}
 end
@@ -83,10 +84,18 @@ function count_npl_citations(c::LensCitations)
         size(filter(cit -> cit isa LensNPLCitation, citations(c)), 1)
 end
 
+PatentsBase.jurisdiction(a::LensDocumentID) = a.jurisdiction
+PatentsBase.jurisdiction(a::LensApplicationReference) = a.document_id.jurisdiction
+PatentsBase.doc_number(a::LensDocumentID) = a.doc_number
+PatentsBase.doc_number(a::LensApplicationReference) = a.document_id.doc_number
+PatentsBase.kind(a::LensDocumentID) = a.kind
+PatentsBase.kind(a::LensApplicationReference) = a.document_id.kind
+
 PatentsBase.phase(pc::LensPatentCitation) = pc.cited_phase
 PatentsBase.phase(lc::LensNPLCitation) = lc.cited_phase
 
-PatentsBase.bibentry(lc::LensNPLCitation) = lc.nplcit.text
+PatentsBase.reference(c::LensPatentCitation) = c.patcit
 
+PatentsBase.bibentry(lc::LensNPLCitation) = lc.nplcit.text
 PatentsBase.external_ids(lc::LensNPLCitation) =
     lc.nplcit.external_ids !== nothing ? lc.nplcit.external_ids : Vector{String}()

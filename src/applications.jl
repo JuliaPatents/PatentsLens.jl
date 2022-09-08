@@ -43,12 +43,6 @@ StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 lens_id(a::LensApplication)::String = a.lens_id
 """Return a `String` with the document type of application `a`"""
 publication_type(a::LensApplication)::String = a.publication_type
-"""Return a `String` with the country code of the filing jurisdiction for application `a`"""
-jurisdiction(a::LensApplication)::String = a.jurisdiction
-"""Return a `String` with the jurisdiction-specific document number of application `a`"""
-doc_number(a::LensApplication)::String = a.doc_number
-"""Return a `String` with the kind code of application `a`"""
-kind(a::LensApplication)::String = a.kind
 """Return the `Date` of publication of application `a`"""
 date_published(a::LensApplication)::Date = a.date_published
 """Return a `String` with the full document key of application `a`"""
@@ -70,7 +64,9 @@ members(f::LensFamilyReference) = f.members
 family_size(::Nothing) = 0
 family_size(f::LensFamilyReference) = f.size
 
-siblings(a::LensApplication)::Vector{LensApplicationReference} = members(a.families.simple_family)
+PatentsBase.jurisdiction(a::LensApplication)::String = a.jurisdiction
+PatentsBase.doc_number(a::LensApplication)::String = a.doc_number
+PatentsBase.kind(a::LensApplication)::String = a.kind
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
@@ -78,7 +74,6 @@ PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
 PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
 
 PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
-
 PatentsBase.citedby(a::LensApplication) = citations(a.biblio.cited_by)
 
 function PatentsBase.patent_citations(a::LensApplication)
@@ -100,3 +95,5 @@ function PatentsBase.classification(::CPC, a::LensApplication)
     classification = a.biblio.classifications_cpc
     isnothing(classification) ? [] : all(classification)
 end
+
+PatentsBase.siblings(a::LensApplication) = members(a.families.simple_family)
