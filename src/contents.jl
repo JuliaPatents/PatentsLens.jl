@@ -22,6 +22,13 @@ StructTypes.lower(a::LensAbstract) = a.abstract
 StructTypes.lowertype(::Type{LensAbstract}) = Vector{LensLocalizedText}
 StructTypes.construct(::Type{LensAbstract}, v::Vector{LensLocalizedText}) = LensAbstract(v)
 
+"""Struct representing the full text of a patent application in the Lens.org format"""
+struct LensFulltext <: AbstractFulltext
+    text::String
+    lang::Union{String, Nothing}
+end
+StructTypes.StructType(::Type{LensFulltext}) = StructTypes.Struct()
+
 """Struct representing a single patent claim in the Lens.org format"""
 struct LensClaim <: AbstractClaim
     claim_text::Vector{String}
@@ -44,6 +51,7 @@ StructTypes.lowertype(::Type{LensClaims}) = Vector{LensLocalizedClaims}
 StructTypes.construct(::Type{LensClaims}, v::Vector{LensLocalizedClaims}) = LensClaims(v)
 
 text(lt::LensLocalizedText) = lt.text
+text(ft::LensFulltext) = ft.text
 text(c::LensClaim) = c.claim_text
 
 text(::Nothing, lang) = nothing
@@ -58,6 +66,7 @@ end
 
 lang(lc::LensLocalizedClaims) = lc.lang
 lang(lt::LensLocalizedText) = lt.lang
+lang(ft::LensFulltext) = ft.lang
 
 function localized_claims(c::LensClaims, lang::String)
     index = findfirst(lc -> lc.lang == lang, c.claims)
@@ -71,11 +80,13 @@ PatentsBase.text(a::LensAbstract, lang::String) = text(a, lang)
 PatentsBase.text(t::LensTitle, lang::String) = text(t, lang)
 PatentsBase.text(::LensClaim, ::String) = throw(ArgumentError("LensClaim is not individually localized"))
 PatentsBase.text(c::LensClaims, lang::String) = string(localized_claims(c, lang))
+PatentsBase.text(t::LensFulltext, lang::String) = t.lang == lang ? t.text : throw(KeyError(lang))
 
 PatentsBase.languages(::Nothing) = nothing
 PatentsBase.languages(a::LensAbstract) = lang.(a.abstract)
 PatentsBase.languages(t::LensTitle) = lang.(t.title)
 PatentsBase.languages(::LensClaim) = throw(ArgumentError("LensClaim is not individually localized"))
 PatentsBase.languages(c::LensClaims) = filter(l -> l !== nothing, lang.(c.claims)) |> unique
+PatentsBase.languages(t::LensFulltext) = isnothing(t.lang) ? Vector{String}() : t.lang
 
 PatentsBase.all(c::LensClaims) = reduce(vcat, all.(c.claims))

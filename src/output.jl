@@ -5,6 +5,11 @@ Base.show(io::IO, c::LensClaim) = print(io, join(c.claim_text, "; "))
 Base.show(io::IO, c::LensLocalizedClaims) = print(io, "($(c.lang))\n" * join(c.claims, "\n"))
 Base.show(io::IO, c::LensClaims) = print(io, join(c.claims, "\n"))
 
+function Base.show(io::IO, t::LensFulltext)
+    !isnothing(lang(t)) && print(io, "($(lang(t))) ")
+    print(io, text(t))
+end
+
 function Base.show(io::IO, id::LensDocumentID)
     date = id.date !== nothing ? id.date : "????-??-??"
     kind = id.kind !== nothing ? id.kind : "?"

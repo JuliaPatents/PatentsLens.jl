@@ -34,6 +34,7 @@ struct LensApplication <: AbstractApplication
     biblio::LensBiblio
     abstract::Union{LensAbstract, Nothing}
     claims::Union{LensClaims, Nothing}
+    description::Union{LensFulltext, Nothing}
     families::LensFamilies
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
