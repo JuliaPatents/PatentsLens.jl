@@ -73,6 +73,10 @@ PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
 
 PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
 
+function PatentsBase.refers_to(ref::LensApplicationReference, app::LensApplication)
+    isnothing(lens_id(ref)) ? refers_to(ref.document_id, app) : lens_id(ref) == lens_id(app)
+end
+
 PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
 PatentsBase.citedby(a::LensApplication) = citations(a.biblio.cited_by)
 

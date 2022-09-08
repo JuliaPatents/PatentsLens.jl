@@ -61,6 +61,7 @@ end
 StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()
 
 id(r::LensApplicationReference) = r.document_id
+lens_id(r::LensApplicationReference) = r.lens_id
 
 citations(::Nothing) = Vector{Union{LensPatentCitation, LensNPLCitation}}()
 citations(c::LensCitations) = c.citations
