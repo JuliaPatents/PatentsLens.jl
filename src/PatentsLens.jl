@@ -18,6 +18,7 @@ export LensFamily, aggregate_families
 
 include("contents.jl")
 include("parties.jl")
+include("references.jl")
 include("citations.jl")
 include("classifications.jl")
 include("applications.jl")
