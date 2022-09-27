@@ -52,8 +52,8 @@ docdb_id(a::LensApplication)::Union{Int, Nothing} = a.docdb_id
 """Return a `String` with the language code of application `a`, or `nothing` if the field is missing"""
 language(a::LensApplication)::Union{String, Nothing} = a.lang
 
-id(a::LensApplication) = LensDocumentID(a.jurisdiction, a.doc_number, a.kind, a.date_published)
-ref(a::LensApplication) = LensApplicationReference(id(a), lens_id(a))
+document_id(a::LensApplication) = LensDocumentID(a.jurisdiction, a.doc_number, a.kind, a.date_published)
+reference(a::LensApplication) = LensApplicationReference(document_id(a), lens_id(a))
 
 count_citations(a::LensApplication) = count_citations(a.biblio.references_cited)
 count_patent_citations(a::LensApplication) = count_patent_citations(a.biblio.references_cited)

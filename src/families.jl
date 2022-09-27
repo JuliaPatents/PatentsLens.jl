@@ -8,17 +8,17 @@ StructTypes.lowertype(::Type{LensFamily}) = Vector{LensApplication}
 StructTypes.construct(::Type{LensFamily}, v::Vector{LensApplication}) = LensFamily(v)
 
 function aggregate_families(apps::Vector{LensApplication})
-    visited = Dict(id(a) => false for a in apps)
-    idx = Dict(id(a) => i for (i, a) in enumerate(apps))
+    visited = Dict(document_id(a) => false for a in apps)
+    idx = Dict(document_id(a) => i for (i, a) in enumerate(apps))
     families = LensFamily[]
     for a in apps
-        visited[id(a)] && continue
+        visited[document_id(a)] && continue
         applications = LensApplication[]
         push!(applications, a)
         for s in siblings(a)
-            haskey(idx, id(s)) || continue
-            push!(applications, apps[idx[id(s)]])
-            visited[id(s)] = true
+            haskey(idx, document_id(s)) || continue
+            push!(applications, apps[idx[document_id(s)]])
+            visited[document_id(s)] = true
         end
         push!(families, LensFamily(applications))
     end

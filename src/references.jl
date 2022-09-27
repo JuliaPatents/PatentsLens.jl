@@ -15,7 +15,7 @@ struct LensApplicationReference <: AbstractApplicationID
 end
 StructTypes.StructType(::Type{LensApplicationReference}) = StructTypes.Struct()
 
-id(r::LensApplicationReference) = r.document_id
+document_id(r::LensApplicationReference) = r.document_id
 lens_id(r::LensApplicationReference) = r.lens_id
 
 PatentsBase.jurisdiction(a::LensDocumentID) = a.jurisdiction

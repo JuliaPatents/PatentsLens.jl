@@ -7,18 +7,21 @@ using StructTypes
 using SQLite
 using DataFrames
 
+# Type exports
 # Content
-export LensTitle, LensAbstract, LensClaim, LensClaims
+export LensTitle, LensAbstract, LensClaim, LensClaims, LensFulltext
 # Citations
-export LensNPLCitation, LensPatentCitation
+export LensNPLCitation, LensPatentCitation, LensForwardCitation
 # Parties
 export LensApplicant, LensInventor
 # Documents
 export LensApplication, LensApplicationReference
 # Families
-export LensFamily, aggregate_families
-# Database functionality
-export set_pragmas, store_sqlite
+export LensFamily
+
+# Function exports
+# IDs and referencing
+export lens_id, document_id, reference
 
 include("contents.jl")
 include("parties.jl")
