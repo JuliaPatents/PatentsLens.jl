@@ -167,26 +167,16 @@ function bulk_insert_family_memberships!(db, apps)
     SQLite.load!(df, db, "family_memberships")
 end
 
-function load_jsonl!(db::SQLite.DB, path::String, chunk_size::Int = 5000)
-    set_pragmas(db)
-    bom = read(open(path, "r"), Char) == '\ufeff'
-    open(path, "r") do f
-        bom && read(f, Char)
-        apps = LensApplication[]
-        line = 1
-        chunk = 1
-        while !eof(f)
-            app_raw = readline(f)
-            app = JSON3.read(app_raw, LensApplication)
-            push!(apps, app)
-            if mod(line, chunk_size) == 0
-                println("Loading chunk #$chunk into database...")
-                bulk_insert_apps!(db, apps)
-                apps = LensApplication[]
-                chunk = chunk + 1
-                println("Done loading. Now reading chunk #$chunk into memory...")
-            end
-            line = line + 1
-        end
-    end
+function aggregate_family_citations!(db::SQLite.DB)
+    DBInterface.execute(db, """
+    INSERT OR IGNORE INTO family_citations (citing, cited)
+        SELECT DISTINCT citing, family_id AS cited
+        FROM
+            (
+                SELECT family_id AS citing, patent_citations.lens_id AS cited_lens_id
+                FROM patent_citations INNER JOIN family_memberships
+                    ON patent_citations.citing_lens_id = family_memberships.lens_id
+                WHERE patent_citations.lens_id IS NOT NULL
+            ) INNER JOIN family_memberships ON cited_lens_id = family_memberships.lens_id;
+    """)
 end

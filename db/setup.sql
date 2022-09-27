@@ -1,6 +1,7 @@
 PRAGMA foreign_keys = ON;
 PRAGMA recursive_triggers = ON;
 
+DROP TABLE IF EXISTS family_citations;
 DROP TABLE IF EXISTS family_memberships;
 DROP TABLE IF EXISTS families;
 DROP TABLE IF EXISTS inventor_relations;
@@ -142,4 +143,12 @@ CREATE TABLE IF NOT EXISTS family_memberships (
   lens_id TEXT NOT NULL PRIMARY KEY,
   family_id INTEGER NOT NULL,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE ON UPDATE CASCADE
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS family_citations (
+  citing INTEGER NOT NULL,
+  cited INTEGER NOT NULL,
+  FOREIGN KEY (citing) REFERENCES families(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (cited) REFERENCES families(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (citing, cited)
 ) STRICT;
