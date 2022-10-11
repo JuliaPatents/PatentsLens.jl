@@ -68,7 +68,10 @@ CREATE TABLE IF NOT EXISTS classifications (
   lens_id TEXT NOT NULL,
   system TEXT,
   symbol TEXT,
-
+  maingroup TEXT,
+  subclass TEXT,
+  class TEXT,
+  section TEXT,
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 

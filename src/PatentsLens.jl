@@ -31,7 +31,7 @@ include("classifications.jl")
 include("applications.jl")
 include("families.jl")
 include("output.jl")
-include("sqlite.jl")
+include("sqlite_storage.jl")
 include("reading.jl")
 
 end

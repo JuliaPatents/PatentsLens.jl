@@ -25,12 +25,12 @@ function bulk_insert_apps!(db::SQLite.DB, apps::Vector{LensApplication})
         docdb_id = docdb_id.(apps),
         lang = language.(apps))
     set_pragmas(db)
-    SQLite.load!(select(df, 1:9), db, "applications", replace = true)
+    SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "REPLACE")
     bulk_insert_npl_citations!(db, lens_ids, npl_citations.(apps))
     bulk_insert_patent_citations!(db, lens_ids, patent_citations.(apps))
     bulk_insert_classifications!(db, lens_ids,
-        map(app -> symbol.(classification(IPC(), app)), apps),
-        map(app -> symbol.(classification(CPC(), app)), apps))
+        map(app -> classification(IPC(), app), apps),
+        map(app -> classification(CPC(), app), apps))
     bulk_insert_titles!(db, lens_ids, map(app -> all(title(app)), apps))
     bulk_insert_abstracts!(db, lens_ids, map(app -> all(app.abstract), apps))
     bulk_insert_fulltexts!(db, lens_ids, map(app -> app.description, apps))
@@ -71,8 +71,18 @@ end
 
 function bulk_insert_classifications!(db, lens_ids, ipc, cpc)
     df_ipc = flatten(DataFrame(lens_id = lens_ids, symbol = ipc, system = "IPC"), :symbol)
+    df_ipc.section = map(s -> symbol(Section(), s), df_ipc.symbol)
+    df_ipc.class = map(s -> symbol(Class(), s), df_ipc.symbol)
+    df_ipc.subclass = map(s -> symbol(Subclass(), s), df_ipc.symbol)
+    df_ipc.maingroup = map(s -> symbol(Maingroup(), s), df_ipc.symbol)
+    df_ipc.symbol = symbol.(df_ipc.symbol)
     SQLite.load!(df_ipc, db, "classifications")
     df_cpc = flatten(DataFrame(lens_id = lens_ids, symbol = cpc, system = "CPC"), :symbol)
+    df_cpc.section = map(s -> symbol(Section(), s), df_cpc.symbol)
+    df_cpc.class = map(s -> symbol(Class(), s), df_cpc.symbol)
+    df_cpc.subclass = map(s -> symbol(Subclass(), s), df_cpc.symbol)
+    df_cpc.maingroup = map(s -> symbol(Maingroup(), s), df_cpc.symbol)
+    df_cpc.symbol = symbol.(df_cpc.symbol)
     SQLite.load!(df_cpc, db, "classifications")
 end
 
@@ -110,11 +120,9 @@ function bulk_insert_applicants!(db, lens_ids, applicants)
     df = flatten(DataFrame(lens_id = lens_ids, applicant = applicants), :applicant)
     df.name = name.(df.applicant)
     df.country = PatentsBase.country.(df.applicant)
+    df.id .= nothing
     replace!(df.country, nothing => "??")
-    insert_stmt = SQLite.Stmt(db, "INSERT OR IGNORE INTO applicants (country, name) VALUES (:country, :name);")
-    for row in eachrow(df)
-        DBInterface.execute(insert_stmt, copy(row))
-    end
+    SQLite.load!(select(df, :id, :country, :name), db, "applicants", on_conflict = "IGNORE")
     applicants = DBInterface.execute(db, "SELECT * FROM applicants;") |> DataFrame
     applicant_ids = Dict()
     for row in eachrow(applicants)
@@ -128,11 +136,9 @@ function bulk_insert_inventors!(db, lens_ids, inventors)
     df = flatten(DataFrame(lens_id = lens_ids, inventor = inventors), :inventor)
     df.name = name.(df.inventor)
     df.country = PatentsBase.country.(df.inventor)
+    df.id .= nothing
     replace!(df.country, nothing => "??")
-    insert_stmt = SQLite.Stmt(db, "INSERT OR IGNORE INTO inventors (country, name) VALUES (:country, :name);")
-    for row in eachrow(df)
-        DBInterface.execute(insert_stmt, copy(row))
-    end
+    SQLite.load!(select(df, :id, :country, :name), db, "inventors", on_conflict = "IGNORE")
     inventors = DBInterface.execute(db, "SELECT * FROM inventors;") |> DataFrame
     inventor_ids = Dict()
     for row in eachrow(inventors)
@@ -166,10 +172,7 @@ function bulk_insert_family_memberships!(db, apps)
             end
         end
     end
-    insert_stmt = SQLite.Stmt(db, "INSERT OR IGNORE INTO families (id) VALUES (:family_id);")
-    for row in eachrow(df)
-        DBInterface.execute(insert_stmt, copy(row))
-    end
+    SQLite.load!(select(df, :family_id => :id), db, "families", on_conflict = "IGNORE")
     SQLite.load!(df, db, "family_memberships")
 end
 
