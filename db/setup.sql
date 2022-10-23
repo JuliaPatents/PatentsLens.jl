@@ -4,18 +4,23 @@ PRAGMA recursive_triggers = ON;
 DROP TABLE IF EXISTS family_citations;
 DROP TABLE IF EXISTS family_memberships;
 DROP TABLE IF EXISTS families;
+
 DROP TABLE IF EXISTS inventor_relations;
 DROP TABLE IF EXISTS inventors;
 DROP TABLE IF EXISTS applicant_relations;
 DROP TABLE IF EXISTS applicants;
+
 DROP TABLE IF EXISTS claims;
 DROP TABLE IF EXISTS fulltexts;
 DROP TABLE IF EXISTS abstracts;
 DROP TABLE IF EXISTS titles;
+
 DROP TABLE IF EXISTS classifications;
+
 DROP TABLE IF EXISTS npl_citations_external_ids;
 DROP TABLE IF EXISTS npl_citations;
 DROP TABLE IF EXISTS patent_citations;
+
 DROP TABLE IF EXISTS applications;
 
 CREATE TABLE IF NOT EXISTS applications (
@@ -30,6 +35,8 @@ CREATE TABLE IF NOT EXISTS applications (
   lang TEXT
 ) STRICT;
 
+CREATE INDEX IF NOT EXISTS idx_applications_date_published ON applications (date_published);
+
 CREATE TABLE IF NOT EXISTS patent_citations (
   citing_lens_id TEXT NOT NULL,
   sequence INTEGER,
@@ -42,6 +49,9 @@ CREATE TABLE IF NOT EXISTS patent_citations (
 
   FOREIGN KEY (citing_lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_patent_citations_lens_id ON patent_citations (lens_id);
+CREATE INDEX IF NOT EXISTS idx_patent_citations_generic_id ON patent_citations (jurisdiction, doc_number, kind);
 
 CREATE TABLE IF NOT EXISTS npl_citations (
   citing_lens_id TEXT NOT NULL,
@@ -61,8 +71,10 @@ CREATE TABLE IF NOT EXISTS npl_citations_external_ids (
   npl_cit_id INTEGER NOT NULL,
   text TEXT,
 
-  FOREIGN KEY (citing_lens_id, npl_cit_id) REFERENCES npl_citations(citing_lens_id, npl_cit_id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (citing_lens_id, npl_cit_id) REFERENCES npl_citations(citing_lens_id, npl_cit_id) ON DELETE CASCADE ON UPDATE CASCADE,
 ) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_npl_citations_external_ids ON npl_citations_external_ids (citing_lens_id, npl_cit_id);
 
 CREATE TABLE IF NOT EXISTS classifications (
   lens_id TEXT NOT NULL,
@@ -74,6 +86,13 @@ CREATE TABLE IF NOT EXISTS classifications (
   section TEXT,
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_classifications_lens_id ON classifications (lens_id);
+CREATE INDEX IF NOT EXISTS idx_classifications_subgroup ON classifications (system, symbol);
+CREATE INDEX IF NOT EXISTS idx_classifications_maingroup ON classifications (system, maingroup);
+CREATE INDEX IF NOT EXISTS idx_classifications_subclass ON classifications (system, subclass);
+CREATE INDEX IF NOT EXISTS idx_classifications_class ON classifications (system, class);
+CREATE INDEX IF NOT EXISTS idx_classifications_section ON classifications (system, section);
 
 CREATE TABLE IF NOT EXISTS titles (
   lens_id TEXT NOT NULL,
@@ -110,6 +129,8 @@ CREATE TABLE IF NOT EXISTS claims (
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 
+CREATE INDEX IF NOT EXISTS idx_claims_lens_id ON claims (lens_id);
+
 CREATE TABLE IF NOT EXISTS applicants (
   id INTEGER NOT NULL PRIMARY KEY,
   country TEXT,
@@ -123,6 +144,9 @@ CREATE TABLE IF NOT EXISTS applicant_relations (
   FOREIGN KEY (applicant_id) REFERENCES applicants(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_applicant_relations_applicant_id ON applicant_relations (applicant_id);
+CREATE INDEX IF NOT EXISTS idx_applicant_relations_lens_id ON applicant_relations (lens_id);
 
 CREATE TABLE IF NOT EXISTS inventors (
   id INTEGER NOT NULL PRIMARY KEY,
@@ -138,6 +162,9 @@ CREATE TABLE IF NOT EXISTS inventor_relations (
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 
+CREATE INDEX IF NOT EXISTS idx_inventor_relations_inventor_id ON inventor_relations (inventor_id);
+CREATE INDEX IF NOT EXISTS idx_inventor_relations_lens_id ON inventor_relations (lens_id);
+
 CREATE TABLE IF NOT EXISTS families (
   id INTEGER NOT NULL PRIMARY KEY
 ) STRICT;
@@ -147,6 +174,8 @@ CREATE TABLE IF NOT EXISTS family_memberships (
   family_id INTEGER NOT NULL,
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_family_memberships_family_id ON family_memberships (family_id);
 
 CREATE TABLE IF NOT EXISTS family_citations (
   citing INTEGER NOT NULL,
