@@ -18,6 +18,10 @@ export LensApplicant, LensInventor
 export LensApplication, LensApplicationReference
 # Families
 export LensFamily
+# Data Sources
+export LensDB
+# Database Filters
+export LensFilter, LensClassificationFilter, LensContentFilter
 
 # Function exports
 # IDs and referencing
@@ -31,7 +35,10 @@ include("classifications.jl")
 include("applications.jl")
 include("families.jl")
 include("output.jl")
-include("sqlite_storage.jl")
+include("sqlite/lensdb.jl")
+include("sqlite/storage.jl")
+include("sqlite/filters.jl")
 include("reading.jl")
+
 
 end

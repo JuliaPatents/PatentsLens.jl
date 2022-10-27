@@ -1,14 +1,9 @@
 
-function set_pragmas(db::SQLite.DB)
-    DBInterface.execute(db, "PRAGMA foreign_keys = ON; PRAGMA recursive_triggers = ON;")
-end
-
+""" Convert a `Date` to a text format for storage in SQLite. """
 date_to_text(date::Date) = Dates.format(date, "yyyy-mm-dd")
 date_to_text(::Nothing) = nothing
 
 """
-    bulk_insert_apps(db::SQLite.DB, apps::Vector{LensApplication})
-
 Insert the applications listed in `apps` into the database `db`, replacing existing data on
 conflict, but preserving and extending party, family and citation relation graphs.
 """
@@ -24,7 +19,6 @@ function bulk_insert_apps!(db::SQLite.DB, apps::Vector{LensApplication})
         doc_key = doc_key.(apps),
         docdb_id = docdb_id.(apps),
         lang = language.(apps))
-    set_pragmas(db)
     SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "REPLACE")
     bulk_insert_npl_citations!(db, lens_ids, npl_citations.(apps))
     bulk_insert_patent_citations!(db, lens_ids, patent_citations.(apps))
@@ -176,21 +170,20 @@ function bulk_insert_family_memberships!(db, apps)
     SQLite.load!(df, db, "family_memberships")
 end
 
-"""
-Update the family-level citation table in database `db`.
-This is done automatically by `load_jsonl!` and similar functions, but can be triggered manually using this function.
-"""
-function aggregate_family_citations!(db::SQLite.DB)
-    set_pragmas(db)
-    DBInterface.execute(db, """
-    INSERT OR IGNORE INTO family_citations (citing, cited)
-        SELECT DISTINCT citing, family_id AS cited
-        FROM
-            (
-                SELECT family_id AS citing, patent_citations.lens_id AS cited_lens_id
-                FROM patent_citations INNER JOIN family_memberships
-                    ON patent_citations.citing_lens_id = family_memberships.lens_id
-                WHERE patent_citations.lens_id IS NOT NULL
-            ) INNER JOIN family_memberships ON cited_lens_id = family_memberships.lens_id;
-    """)
-end
+# """
+# Update the family-level citation table in database `db`.
+# This is done automatically by `load_jsonl!` and similar functions, but can be triggered manually using this function.
+# """
+# function aggregate_family_citations!(db::SQLite.DB)
+#     DBInterface.execute(db, """
+#     INSERT OR IGNORE INTO family_citations (citing, cited)
+#         SELECT DISTINCT citing, family_id AS cited
+#         FROM
+#             (
+#                 SELECT family_id AS citing, patent_citations.lens_id AS cited_lens_id
+#                 FROM patent_citations INNER JOIN family_memberships
+#                     ON patent_citations.citing_lens_id = family_memberships.lens_id
+#                 WHERE patent_citations.lens_id IS NOT NULL
+#             ) INNER JOIN family_memberships ON cited_lens_id = family_memberships.lens_id;
+#     """)
+# end
