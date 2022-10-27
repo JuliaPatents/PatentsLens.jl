@@ -39,6 +39,6 @@ include("sqlite/lensdb.jl")
 include("sqlite/storage.jl")
 include("sqlite/filters.jl")
 include("reading.jl")
-
+include("landscapes/taxonomies.jl")
 
 end

@@ -2,6 +2,7 @@ PRAGMA foreign_keys = ON;
 PRAGMA recursive_triggers = ON;
 
 DROP TABLE IF EXISTS lens_db_meta;
+DROP TABLE IF EXISTS taxonomies;
 DROP TABLE IF EXISTS family_citations;
 DROP TABLE IF EXISTS family_memberships;
 DROP TABLE IF EXISTS families;
@@ -139,6 +140,14 @@ CREATE TABLE IF NOT EXISTS family_memberships (
   FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS taxonomies (
+  taxonomy TEXT,
+  taxon TEXT,
+  lens_id TEXT,
+  UNIQUE (taxonomy, taxon, lens_id)
+  FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE
+) STRICT;
+
 -- Note: This table has been removed as ad-hoc aggregation of a family citation edgelist does not seem to be overly time-expensive.
 -- CREATE TABLE IF NOT EXISTS family_citations (
 --   citing INTEGER NOT NULL,
@@ -169,6 +178,7 @@ DROP INDEX IF EXISTS idx_applicant_relations_lens_id;
 DROP INDEX IF EXISTS idx_inventor_relations_inventor_id;
 DROP INDEX IF EXISTS idx_inventor_relations_lens_id;
 DROP INDEX IF EXISTS idx_family_memberships_family_id;
+DROP INDEX IF EXISTS idx_taxonomies_taxonomy_taxon;
 
 CREATE INDEX IF NOT EXISTS idx_applications_date_published ON applications (date_published);
 CREATE INDEX IF NOT EXISTS idx_patent_citations_lens_id ON patent_citations (lens_id);
@@ -185,3 +195,4 @@ CREATE INDEX IF NOT EXISTS idx_applicant_relations_lens_id ON applicant_relation
 CREATE INDEX IF NOT EXISTS idx_inventor_relations_inventor_id ON inventor_relations (inventor_id);
 CREATE INDEX IF NOT EXISTS idx_inventor_relations_lens_id ON inventor_relations (lens_id);
 CREATE INDEX IF NOT EXISTS idx_family_memberships_family_id ON family_memberships (family_id);
+CREATE INDEX IF NOT EXISTS idx_taxonomies_taxonomy_taxon ON taxonomies (taxonomy, taxon);

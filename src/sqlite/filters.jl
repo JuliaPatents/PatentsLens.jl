@@ -97,3 +97,34 @@ function apply_filter!(db::LensDB, filter::LensContentFilter)
         [filter.search_query])
     DBInterface.execute(db.db, "DELETE FROM application_filter WHERE lens_id NOT IN (SELECT lens_id FROM content_filter);");
 end
+
+"""
+Struct representing a database filter using a custom taxonomy.
+* `taxonomy`: The name of the taxonomy by which to filter.
+* `included_taxa`: The names of the individual taxa to include.
+    If an empty list is passed, all known taxa within the taxonomy are included.
+"""
+struct LensTaxonomicFilter <: LensFilter
+    taxonomy::String
+    included_taxa::Vector{String}
+end
+
+function apply_filter!(db::LensDB, filter::LensTaxonomicFilter)
+    if (isempty(filter.included_taxa))
+        DBInterface.execute(db.db, """
+            DELETE FROM application_filter WHERE lens_id NOT IN (
+                SELECT DISTINCT lens_id FROM taxonomies
+                WHERE taxonomy = "$(filter.taxonomy)"
+            );
+        """)
+    else
+        taxa = join(map(t -> '"' * t * '"', filter.included_taxa), ",")
+        DBInterface.execute(db.db, """
+            DELETE FROM application_filter WHERE lens_id NOT IN (
+                SELECT DISTINCT lens_id FROM taxonomies
+                WHERE taxonomy = "$(filter.taxonomy)"
+                AND taxon IN ($taxa)
+            );
+        """)
+    end
+end
