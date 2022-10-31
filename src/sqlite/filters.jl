@@ -1,7 +1,7 @@
 """
 Abstract type representing a filter that can be applied to a PatentsLens database.
 In principle, any predicate that can apply to an application can be a filter.
-Filter are composable using the `LensUnionFilter` and `LensIntersectFilter` structs and the corresponding `|` and `&` infix operators.
+Filter are composable using the `LensUnionFilter` and `LensIntersectionFilter` structs and the corresponding `|` and `&` infix operators.
 """
 abstract type LensFilter end
 
@@ -14,7 +14,9 @@ function query_select_families(f::LensFilter)::String end
 """ Remove all active filters from a PatentsLens database. """
 function clear_filter!(db::LensDB)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(db.db, "CREATE TEMP TABLE application_filter AS SELECT DISTINCT lens_id FROM applications;")
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
+    DBInterface.execute(db.db, "CREATE TEMP TABLE family_filter AS SELECT DISTINCT id AS family_id FROM families;")
 end
 
 """ Apply `filter` to database `db`, generating a temporary table of matching applications. """
@@ -193,21 +195,21 @@ function query_select_families(filter::LensTaxonomicFilter)
     end
 end
 
-"Struct representing the intersect or conjunction of two `LensFilter`s."
-struct LensIntersectFilter <: LensFilter
+"Struct representing the intersection or conjunction of two `LensFilter`s."
+struct LensIntersectionFilter <: LensFilter
     a::LensFilter
     b::LensFilter
 end
 
-(&)(a::LensFilter, b::LensFilter) = LensIntersectFilter(a, b)
+(&)(a::LensFilter, b::LensFilter) = LensIntersectionFilter(a, b)
 
-function query_select_applications(filter::LensIntersectFilter)
+function query_select_applications(filter::LensIntersectionFilter)
     qa = query_select_applications(filter.a)
     qb = query_select_applications(filter.b)
     "SELECT * FROM ($qa INTERSECT $qb)"
 end
 
-function query_select_families(filter::LensIntersectFilter)
+function query_select_families(filter::LensIntersectionFilter)
     qa = query_select_families(filter.a)
     qb = query_select_families(filter.b)
     "SELECT * FROM ($qa INTERSECT $qb)"
