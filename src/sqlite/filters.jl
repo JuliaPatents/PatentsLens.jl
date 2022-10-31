@@ -1,31 +1,47 @@
 """
 Abstract type representing a filter that can be applied to a PatentsLens database.
 In principle, any predicate that can apply to an application can be a filter.
-Filter are combined subtractively: Subsequent application of two filters should result in
-the intersection of matching applications, not the union.
+Filter are composable using the `LensUnionFilter` and `LensIntersectFilter` structs and the corresponding `|` and `&` infix operators.
 """
 abstract type LensFilter end
+
+"Generate an SQLite query to select the Lens IDs of all applications matching `f`."
+function query_select_applications(f::LensFilter)::String end
+
+"Generate an SQLite query to select the family IDs of all families matching `f`."
+function query_select_families(f::LensFilter)::String end
 
 """ Remove all active filters from a PatentsLens database. """
 function clear_filter!(db::LensDB)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS application_filter;")
-    DBInterface.execute(db.db, "CREATE TEMP TABLE application_filter AS SELECT DISTINCT lens_id FROM applications;")
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
-    DBInterface.execute(db.db, "CREATE TEMP TABLE family_filter AS SELECT DISTINCT id AS family_id FROM families;")
 end
 
-""" Subtractively apply a filter to a PatentsLens database. """
-function apply_filter!(db::LensDB, filter::LensFilter) end
-
-""" Derive a family filter from the active application filters on a PatentsLens database. """
-function derive_family_filter!(db::LensDB)
-    DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
-    DBInterface.execute(db.db, """
-        CREATE TEMP TABLE family_filter AS SELECT DISTINCT family_id
-        FROM application_filter INNER JOIN family_memberships
-        ON application_filter.lens_id = family_memberships.lens_id;
-    """)
+""" Apply `filter` to database `db`, generating a temporary table of matching applications. """
+function apply_application_filter!(db::LensDB, filter::LensFilter)
+    DBInterface.execute(db.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(db.db,
+        "CREATE TEMP TABLE application_filter AS " * query_select_applications(filter))
 end
+
+""" Apply `filter` to database `db`, generating a temporary table of matching patent families. """
+function apply_family_filter!(db::LensDB, filter::LensFilter)
+    DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
+    DBInterface.execute(db.db,
+        "CREATE TEMP TABLE family_filter AS " * query_select_families(filter))
+end
+
+" Helper function to return database table or column names or key values for certain dispatch types. "
+function db_key end
+
+db_key(::Section) = "section"
+db_key(::Class) = "class"
+db_key(::Subclass) = "subclass"
+db_key(::Maingroup) = "maingroup"
+db_key(::Subgroup) = "symbol"
+
+db_key(::IPC) = "IPC"
+db_key(::CPC) = "CPC"
 
 """
 Struct representing a database filter by IPC-like classification.
@@ -39,63 +55,95 @@ struct LensClassificationFilter <: LensFilter
     symbols::Vector{<:IPCLikeSymbol}
 end
 
-function db_key end
-
-db_key(::Section) = "section"
-db_key(::Class) = "class"
-db_key(::Subclass) = "subclass"
-db_key(::Maingroup) = "maingroup"
-db_key(::Subgroup) = "symbol"
-
-db_key(::IPC) = "IPC"
-db_key(::CPC) = "CPC"
-
-function apply_filter!(db::LensDB, filter::LensClassificationFilter)
+function query_select_applications(filter::LensClassificationFilter)
     symbols = join(map(s -> '"' * symbol(filter.level, s) * '"', filter.symbols), ",")
-    DBInterface.execute(db.db, """
-        DELETE FROM application_filter WHERE lens_id NOT IN (
-            SELECT DISTINCT lens_id FROM classifications
-            WHERE system = "$(db_key(filter.system))" AND $(db_key(filter.level)) IN ($symbols)
-        );
-    """)
+    """
+    SELECT DISTINCT lens_id
+    FROM classifications
+    WHERE system = "$(db_key(filter.system))"
+    AND $(db_key(filter.level)) IN ($symbols)
+    """
 end
+
+function query_select_families(filter::LensClassificationFilter)
+    symbols = join(map(s -> '"' * symbol(filter.level, s) * '"', filter.symbols), ",")
+    """
+    SELECT DISTINCT family_id
+    FROM classifications INNER JOIN family_memberships
+    ON classifications.lens_id = family_memberships.lens_id
+    WHERE system = "$(db_key(filter.system))"
+    AND $(db_key(filter.level)) IN ($symbols)
+    """
+end
+
+"Abstract type representing a fulltext-searchable application content field."
+abstract type LensSearchableContentField end
+
+struct TitleSearch <: LensSearchableContentField end
+db_key(::TitleSearch) = "titles"
+
+struct AbstractSearch <: LensSearchableContentField end
+db_key(::AbstractSearch) = "abstracts"
+
+struct ClaimsSearch <: LensSearchableContentField end
+db_key(::ClaimsSearch) = "claims"
+
+struct FulltextSearch <: LensSearchableContentField end
+db_key(::FulltextSearch) = "fulltexts"
 
 """
 Struct representing a database filter using full-text search on various content fields.
-* `search_query`: The keyword(s), phrase(s) or complex query to be used for the search. For query syntax consult https://www.sqlite.org/fts5.html#full_text_query_syntax.
-* `match_title`: Whether to search in the title field of applications.
-* `match_abstract`: Whether to search in the abstract / short description field of applications.
-* `match_claims`: Whether to search in the claims field of applications.
-* `match_fulltext`: Whether to search the full application text, if available.
+* `search_query`: The keyword(s), phrase(s) or complex query to be used for the search.
+    For query syntax consult https://www.sqlite.org/fts5.html#full_text_query_syntax.
+* `field`: Specifies which `LensSearchableContentField` is used for the search.
+    Possible values are `TitleSearch()`, `AbstractSearch()`, `ClaimsSearch()`, or `FulltextSearch()`
+* `languages`: A vector of two-character language codes specifying the languages for which matches are included.
+    If an empty vector is passed (as by default), all available languages are included.
 """
-struct LensContentFilter <: LensFilter
+Base.@kwdef struct LensContentFilter <: LensFilter
     search_query::String
-    match_title::Bool
-    match_abstract::Bool
-    match_claims::Bool
-    match_fulltext::Bool
+    field::LensSearchableContentField
+    languages::Vector{String} = []
 end
 
-function apply_filter!(db::LensDB, filter::LensContentFilter)
-    DBInterface.execute(db.db, "DROP TABLE IF EXISTS content_filter;")
-    DBInterface.execute(db.db, "CREATE TEMP TABLE content_filter (lens_id TEXT PRIMARY KEY);")
-    filter.match_title && DBInterface.execute(
-        db.db,
-        """INSERT OR IGNORE INTO content_filter SELECT DISTINCT lens_id FROM titles WHERE text MATCH ? ;""",
-        [filter.search_query])
-    filter.match_abstract && DBInterface.execute(
-        db.db,
-        """INSERT OR IGNORE INTO content_filter SELECT DISTINCT lens_id FROM abstracts WHERE text MATCH ? ;""",
-        [filter.search_query])
-    filter.match_claims && DBInterface.execute(
-        db.db,
-        """INSERT OR IGNORE INTO content_filter SELECT DISTINCT lens_id FROM claims WHERE text MATCH ? ;""",
-        [filter.search_query])
-    filter.match_fulltext && DBInterface.execute(
-        db.db,
-        """INSERT OR IGNORE INTO content_filter SELECT DISTINCT lens_id FROM fulltexts WHERE text MATCH ? ;""",
-        [filter.search_query])
-    DBInterface.execute(db.db, "DELETE FROM application_filter WHERE lens_id NOT IN (SELECT lens_id FROM content_filter);");
+function LensContentFilter(search_query::String, field::LensSearchableContentField)
+    LensContentFilter(search_query, field, Vector{String}())
+end
+
+function query_select_applications(filter::LensContentFilter)
+    if (isempty(filter.languages))
+        """
+        SELECT DISTINCT lens_id FROM $(db_key(filter.field))
+        WHERE text MATCH "$(filter.search_query)"
+        """
+    else
+        langs = join(map(l -> '"' * l * '"', filter.languages), ",")
+        """
+        SELECT DISTINCT lens_id FROM $(db_key(filter.field))
+        WHERE text MATCH "$(filter.search_query)"
+        AND lang IN ($langs)
+        """
+    end
+end
+
+function query_select_families(filter::LensContentFilter)
+    if (isempty(filter.languages))
+        """
+        SELECT DISTINCT family_id
+        FROM $(db_key(filter.field)) INNER JOIN family_memberships
+        ON $(db_key(filter.field)).lens_id = family_memberships.lens_id
+        WHERE text MATCH "$(filter.search_query)"
+        """
+    else
+        langs = join(map(l -> '"' * l * '"', filter.languages), ",")
+        """
+        SELECT DISTINCT family_id
+        FROM $(db_key(filter.field)) INNER JOIN family_memberships
+        ON $(db_key(filter.field)).lens_id = family_memberships.lens_id
+        WHERE text MATCH "$(filter.search_query)"
+        AND lang IN ($langs)
+        """
+    end
 end
 
 """
@@ -109,22 +157,78 @@ struct LensTaxonomicFilter <: LensFilter
     included_taxa::Vector{String}
 end
 
-function apply_filter!(db::LensDB, filter::LensTaxonomicFilter)
+function query_select_applications(filter::LensTaxonomicFilter)
     if (isempty(filter.included_taxa))
-        DBInterface.execute(db.db, """
-            DELETE FROM application_filter WHERE lens_id NOT IN (
-                SELECT DISTINCT lens_id FROM taxonomies
-                WHERE taxonomy = "$(filter.taxonomy)"
-            );
-        """)
+        """
+        SELECT DISTINCT lens_id FROM taxonomies
+        WHERE taxonomy = "$(filter.taxonomy)"
+        """
     else
         taxa = join(map(t -> '"' * t * '"', filter.included_taxa), ",")
-        DBInterface.execute(db.db, """
-            DELETE FROM application_filter WHERE lens_id NOT IN (
-                SELECT DISTINCT lens_id FROM taxonomies
-                WHERE taxonomy = "$(filter.taxonomy)"
-                AND taxon IN ($taxa)
-            );
-        """)
+        """
+        SELECT DISTINCT lens_id FROM taxonomies
+        WHERE taxonomy = "$(filter.taxonomy)"
+        AND taxon IN ($taxa)
+        """
     end
+end
+
+function query_select_families(filter::LensTaxonomicFilter)
+    if (isempty(filter.included_taxa))
+        """
+        SELECT DISTINCT family_id
+        FROM taxonomies INNER JOIN family_memberships
+        ON taxonomies.lens_id = family_memberships.lens_id
+        WHERE taxonomy = "$(filter.taxonomy)"
+        """
+    else
+        taxa = join(map(t -> '"' * t * '"', filter.included_taxa), ",")
+        """
+        SELECT DISTINCT family_id
+        FROM taxonomies INNER JOIN family_memberships
+        ON taxonomies.lens_id = family_memberships.lens_id
+        WHERE taxonomy = "$(filter.taxonomy)"
+        AND taxon IN ($taxa)
+        """
+    end
+end
+
+"Struct representing the intersect or conjunction of two `LensFilter`s."
+struct LensIntersectFilter <: LensFilter
+    a::LensFilter
+    b::LensFilter
+end
+
+(&)(a::LensFilter, b::LensFilter) = LensIntersectFilter(a, b)
+
+function query_select_applications(filter::LensIntersectFilter)
+    qa = query_select_applications(filter.a)
+    qb = query_select_applications(filter.b)
+    "SELECT * FROM ($qa INTERSECT $qb)"
+end
+
+function query_select_families(filter::LensIntersectFilter)
+    qa = query_select_families(filter.a)
+    qb = query_select_families(filter.b)
+    "SELECT * FROM ($qa INTERSECT $qb)"
+end
+
+"Struct representing the union or disjunction of two `LensFilter`s."
+struct LensUnionFilter <: LensFilter
+    a::LensFilter
+    b::LensFilter
+end
+
+(|)(a::LensFilter, b::LensFilter) = LensUnionFilter(a, b)
+
+function query_select_applications(filter::LensUnionFilter)
+    qa = query_select_applications(filter.a)
+    qb = query_select_applications(filter.b)
+    "SELECT * FROM ($qa UNION $qb)"
+end
+
+function query_select_families(filter::LensUnionFilter)
+    qa = query_select_families(filter.a)
+    qb = query_select_families(filter.b)
+    "SELECT * FROM ($qa UNION $qb)"
 end

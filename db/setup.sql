@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS taxonomies (
   taxonomy TEXT,
   taxon TEXT,
   lens_id TEXT,
-  UNIQUE (taxonomy, taxon, lens_id)
+  UNIQUE (taxonomy, taxon, lens_id),
   FOREIGN KEY (lens_id) REFERENCES applications(lens_id) ON DELETE CASCADE
 ) STRICT;
 
