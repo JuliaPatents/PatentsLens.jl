@@ -164,6 +164,7 @@ CREATE TABLE IF NOT EXISTS lens_db_meta (
 INSERT INTO lens_db_meta (version) VALUES (1);
 
 DROP INDEX IF EXISTS idx_applications_date_published;
+DROP INDEX IF EXISTS idx_applications_julianday;
 DROP INDEX IF EXISTS idx_patent_citations_lens_id;
 DROP INDEX IF EXISTS idx_patent_citations_generic_id;
 DROP INDEX IF EXISTS idx_npl_citations_external_ids;
@@ -181,6 +182,7 @@ DROP INDEX IF EXISTS idx_family_memberships_family_id;
 DROP INDEX IF EXISTS idx_taxonomies_taxonomy_taxon;
 
 CREATE INDEX IF NOT EXISTS idx_applications_date_published ON applications (date_published);
+CREATE INDEX IF NOT EXISTS idx_applications_julianday ON applications (julianday(date_published));
 CREATE INDEX IF NOT EXISTS idx_patent_citations_lens_id ON patent_citations (lens_id);
 CREATE INDEX IF NOT EXISTS idx_patent_citations_generic_id ON patent_citations (jurisdiction, doc_number, kind);
 CREATE INDEX IF NOT EXISTS idx_npl_citations_external_ids ON npl_citations_external_ids (citing_lens_id, npl_cit_id);

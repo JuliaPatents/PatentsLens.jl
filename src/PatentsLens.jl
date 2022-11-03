@@ -40,5 +40,6 @@ include("sqlite/storage.jl")
 include("sqlite/filters.jl")
 include("reading.jl")
 include("landscapes/taxonomies.jl")
+include("landscapes/analyses.jl")
 
 end
