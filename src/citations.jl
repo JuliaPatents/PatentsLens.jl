@@ -23,7 +23,7 @@ end
 StructTypes.StructType(::Type{LensNPLCitation}) = StructTypes.Struct()
 
 struct LensCitations # helper type, do not export
-    citations::Vector{Union{LensPatentCitation, LensNPLCitation}}
+    citations::Union{Nothing, Vector{Union{LensPatentCitation, LensNPLCitation}}}
     patent_count::Union{Int, Nothing}
     npl_count::Union{Int, Nothing}
     npl_resolved_count::Union{Int, Nothing}
