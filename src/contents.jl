@@ -1,6 +1,6 @@
 struct LensLocalizedText # helper type, do not export
     text::String
-    lang::String
+    lang::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensLocalizedText}) = StructTypes.Struct()
 
