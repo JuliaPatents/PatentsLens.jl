@@ -6,6 +6,7 @@ using PatentsBase
 using StructTypes
 using SQLite
 using DataFrames
+using Graphs
 
 # Type exports
 # Content
