@@ -8,5 +8,5 @@ struct LensCPCClassifications
 end
 StructTypes.StructType(::Type{LensCPCClassifications}) = StructTypes.Struct()
 
-all(ic::LensIPCRClassifications) = isnothing(ic.classifications) ? [] : ic.classifications
-all(cc::LensCPCClassifications) = isnothing(cc.classifications) ? [] : cc.classifications
+all(ic::LensIPCRClassifications) = isnothing(ic.classifications) ? CPCSymbol[] : ic.classifications
+all(cc::LensCPCClassifications) = isnothing(cc.classifications) ? IPCSymbol[] : cc.classifications
