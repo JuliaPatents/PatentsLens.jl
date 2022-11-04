@@ -26,3 +26,9 @@ function aggregate_families(apps::Vector{LensApplication})
 end
 
 PatentsBase.applications(f::LensFamily) = f.members
+
+"""
+    earliest_date_published(f)
+Return the earliest `Date` of publication of all the applications in family `f`
+"""
+earliest_date_published(f::LensFamily)::Date = minimum(date_published.(applications(f)))
