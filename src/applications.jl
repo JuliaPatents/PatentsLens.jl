@@ -81,7 +81,9 @@ PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
 PatentsBase.citedby(a::LensApplication) = citations(a.biblio.cited_by)
 
 function PatentsBase.patent_citations(a::LensApplication)
-    filtered = filter(app -> app isa LensPatentCitation, PatentsBase.citations(a))
+    citations = PatentsBase.citations(a)
+    isnothing(citations) && return Vector{LensPatentCitation}[]
+    filtered = filter(app -> app isa LensPatentCitation, citations)
     Vector{LensPatentCitation}(filtered)
 end
 
