@@ -53,6 +53,20 @@ count_citations(::Nothing) = 0
 count_citations(c::LensCitations) = size(citations(c), 1)
 count_citations(c::LensForwardCitations) = size(citations(c), 1)
 
+# the interface for citations seems still a bit convoluted
+count_forwardcitations(a::LensApplication) = count_citations(a.biblio.cited_by)
+function count_forwardcitations(f::LensFamily) 
+    cit = String[]
+    for a in applications(f)
+        p = a.biblio.cited_by.patents
+        isnothing(p) && continue
+        for c in p
+            push!(cit, lens_id(c.ref))
+        end
+    end
+    length(unique(cit))
+end
+
 count_patent_citations(::Nothing) = 0
 function count_patent_citations(c::LensCitations)
     return c.patent_count !== nothing ?
