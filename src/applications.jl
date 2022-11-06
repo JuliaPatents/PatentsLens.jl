@@ -94,6 +94,9 @@ function PatentsBase.npl_citations(a::LensApplication)
     Vector{LensNPLCitation}(filtered)
 end
 
+# the interface for citations seems still a bit convoluted
+count_forwardcitations(a::LensApplication) = count_citations(a.biblio.cited_by)
+
 function PatentsBase.classification(::IPC, a::LensApplication)
     classification = a.biblio.classifications_ipcr
     isnothing(classification) ? [] : all(classification)

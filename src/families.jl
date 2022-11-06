@@ -27,6 +27,18 @@ end
 
 PatentsBase.applications(f::LensFamily) = f.members
 
+function count_forwardcitations(f::LensFamily) 
+    cit = String[]
+    for a in applications(f)
+        p = a.biblio.cited_by.patents
+        isnothing(p) && continue
+        for c in p
+            push!(cit, lens_id(c.ref))
+        end
+    end
+    length(unique(cit))
+end
+
 """
     earliest_date_published(f)
 Return the earliest `Date` of publication of all the applications in family `f`
