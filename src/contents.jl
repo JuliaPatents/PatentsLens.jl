@@ -58,11 +58,11 @@ text(c::LensClaim) = c.claim_text
 text(::Nothing, lang) = nothing
 function text(t::LensTitle, lang::String)
     index = findfirst(lt -> lt.lang == lang, t.title)
-    index !== nothing ? text(t.title[index]) : throw(KeyError(lang))
+    index == nothing ? nothing : text(t.title[index])
 end
 function text(a::LensAbstract, lang::String)
     index = findfirst(lt -> lt.lang == lang, a.abstract)
-    index !== nothing ? text(a.abstract[index]) : throw(KeyError(lang))
+    index == nothing ? nothing : text(a.abstract[index])
 end
 
 lang(::Nothing) = nothing
@@ -72,7 +72,7 @@ lang(ft::LensFulltext) = ft.lang
 
 function localized_claims(c::LensClaims, lang::String)
     index = findfirst(lc -> lc.lang == lang, c.claims)
-    index !== nothing ? c.claims[index] : throw(KeyError(lang))
+    index == nothing ? nothing : c.claims[index]
 end
 
 all(lc::LensLocalizedClaims) = lc.claims
