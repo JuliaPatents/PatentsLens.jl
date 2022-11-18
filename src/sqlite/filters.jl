@@ -234,3 +234,14 @@ function query_select_families(filter::LensUnionFilter)
     qb = query_select_families(filter.b)
     "SELECT * FROM ($qa UNION $qb)"
 end
+
+"Pseudo-filter that matches all applications or families in a database."
+struct LensAllFilter <: LensFilter end
+
+function query_select_applications(filter::LensAllFilter)
+    "SELECT lens_id FROM applications;"
+end
+
+function query_select_families(filter::LensAllFilter)
+    "SELECT DISTINCT family_id FROM family_memberships;"
+end

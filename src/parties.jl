@@ -7,6 +7,7 @@ StructTypes.StructType(::Type{LensExtractedName}) = StructTypes.Struct()
 struct LensApplicant <: AbstractApplicant
     residence::Union{String, Nothing}
     extracted_name::Union{LensExtractedName, Nothing}
+    id::Union{Int, Nothing}
 end
 StructTypes.StructType(::Type{LensApplicant}) = StructTypes.Struct()
 
@@ -14,6 +15,7 @@ StructTypes.StructType(::Type{LensApplicant}) = StructTypes.Struct()
 struct LensInventor <: AbstractInventor
     residence::Union{String, Nothing}
     extracted_name::Union{LensExtractedName, Nothing}
+    id::Union{Int, Nothing}
 end
 StructTypes.StructType(::Type{LensInventor}) = StructTypes.Struct()
 

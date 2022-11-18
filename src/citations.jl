@@ -24,9 +24,6 @@ StructTypes.StructType(::Type{LensNPLCitation}) = StructTypes.Struct()
 
 struct LensCitations # helper type, do not export
     citations::Union{Nothing, Vector{Union{LensPatentCitation, LensNPLCitation}}}
-    patent_count::Union{Int, Nothing}
-    npl_count::Union{Int, Nothing}
-    npl_resolved_count::Union{Int, Nothing}
 end
 StructTypes.StructType(::Type{LensCitations}) = StructTypes.Struct()
 
@@ -41,7 +38,6 @@ StructTypes.construct(::Type{LensForwardCitation}, ar::LensApplicationReference)
 
 struct LensForwardCitations # helper type, do not export
     patents::Union{Vector{LensForwardCitation}, Nothing}
-    patent_count::Union{Int, Nothing}
 end
 StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()
 
@@ -54,18 +50,12 @@ count_citations(c::LensCitations) = size(citations(c), 1)
 count_citations(c::LensForwardCitations) = size(citations(c), 1)
 
 count_patent_citations(::Nothing) = 0
-function count_patent_citations(c::LensCitations)
-    return c.patent_count !== nothing ?
-        c.patent_count :
-        size(filter(cit -> cit isa LensPatentCitation, citations(c)), 1)
-end
+count_patent_citations(c::LensCitations) =
+    size(filter(cit -> isa(cit, LensPatentCitation), citations(c)), 1)
 
 count_npl_citations(::Nothing) = 0
-function count_npl_citations(c::LensCitations)
-    return c.npl_count !== nothing ?
-        c.npl_count :
-        size(filter(cit -> cit isa LensNPLCitation, citations(c)), 1)
-end
+count_npl_citations(c::LensCitations) =
+    size(filter(cit -> isa(cit, LensNPLCitation), citations(c)), 1)
 
 PatentsBase.phase(pc::LensPatentCitation) = pc.cited_phase
 PatentsBase.phase(lc::LensNPLCitation) = lc.cited_phase
