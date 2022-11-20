@@ -5,7 +5,7 @@ struct LensDB <: AbstractDataSource
         meta = DBInterface.execute(db, """
             SELECT * FROM sqlite_schema WHERE name = "lens_db_meta";
         """) |> DataFrame
-        nrow(meta) == 0  && initdb!(db)
+        nrow(meta) == 0 && initdb!(db)
         set_pragmas!(db)
         new(db)
     end

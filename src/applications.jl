@@ -10,7 +10,6 @@ StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
 struct LensFamilyReference # Helper type, do not export
     members::Vector{LensApplicationReference}
-    size::Int
 end
 StructTypes.StructType(::Type{LensFamilyReference}) = StructTypes.Struct()
 
@@ -62,7 +61,7 @@ count_npl_citations(a::LensApplication) = count_npl_citations(a.biblio.reference
 members(::Nothing) = Vector{LensApplicationReference}()
 members(f::LensFamilyReference) = f.members
 family_size(::Nothing) = 0
-family_size(f::LensFamilyReference) = f.size
+family_size(f::LensFamilyReference) = length(f.members)
 
 PatentsBase.jurisdiction(a::LensApplication)::String = a.jurisdiction
 PatentsBase.doc_number(a::LensApplication)::String = a.doc_number

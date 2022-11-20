@@ -31,6 +31,16 @@ function apply_family_filter!(db::LensDB, filter::LensFilter)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
     DBInterface.execute(db.db,
         "CREATE TEMP TABLE family_filter AS " * query_select_families(filter))
+    DBInterface.execute(db.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(db.db, """
+        CREATE TEMP TABLE application_filter AS
+        SELECT DISTINCT applications.lens_id FROM
+        family_filter
+        INNER JOIN family_memberships
+        ON family_filter.family_id = family_memberships.family_id
+        INNER JOIN applications
+        ON family_memberships.lens_id = applications.lens_id
+    """)
 end
 
 " Helper function to return database table or column names or key values for certain dispatch types. "
@@ -201,7 +211,7 @@ struct LensIntersectionFilter <: LensFilter
     b::LensFilter
 end
 
-(&)(a::LensFilter, b::LensFilter) = LensIntersectionFilter(a, b)
+Base.:&(a::LensFilter, b::LensFilter) = LensIntersectionFilter(a, b)
 
 function query_select_applications(filter::LensIntersectionFilter)
     qa = query_select_applications(filter.a)
@@ -221,7 +231,7 @@ struct LensUnionFilter <: LensFilter
     b::LensFilter
 end
 
-(|)(a::LensFilter, b::LensFilter) = LensUnionFilter(a, b)
+Base.:|(a::LensFilter, b::LensFilter) = LensUnionFilter(a, b)
 
 function query_select_applications(filter::LensUnionFilter)
     qa = query_select_applications(filter.a)
@@ -243,5 +253,5 @@ function query_select_applications(filter::LensAllFilter)
 end
 
 function query_select_families(filter::LensAllFilter)
-    "SELECT DISTINCT family_id FROM family_memberships;"
+    "SELECT DISTINCT id AS family_id FROM families;"
 end

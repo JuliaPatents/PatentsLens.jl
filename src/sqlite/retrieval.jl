@@ -81,6 +81,15 @@ function bulk_select_inventors(db::LensDB)::DataFrame
     """) |> DataFrame
 end
 
+function bulk_select_families(db::LensDB)::DataFrame
+    DBInterface.execute(db.db, """
+        SELECT application_filter.lens_id AS lens_id, family_id
+        FROM application_filter
+        INNER JOIN family_memberships
+        ON application_filter.lens_id = family_memberships.lens_id
+    """) |> DataFrame
+end
+
 # Special constructors for relational-to-object mapping
 
 function LensLocalizedText(dfr::DataFrameRow)
@@ -152,6 +161,15 @@ function LensInventor(dfr::DataFrameRow)
     )
 end
 
+LensClaim(sdf::SubDataFrame) = LensClaim(sdf.text)
+
+function LensLocalizedClaims(sdf::SubDataFrame)
+    LensLocalizedClaims(
+        LensClaim.(groupby(sdf, :claim_id) |> collect),
+        (nrow(sdf) < 1 || ismissing(sdf[1, :lang])) ? nothing : sdf[1, :lang]
+    )
+end
+
 # Index-based gatherer functions for application fields
 
 function gather_title(lens_id::String, df::DataFrame, idx::Dict{String, Vector{Int}})::Union{LensTitle, Nothing}
@@ -211,6 +229,10 @@ function gather_inventors(lens_id::String, df::DataFrame, idx::Dict{String, Vect
     LensInventor.(eachrow(df[get(idx, lens_id, []), :]))
 end
 
+function gather_claims(lens_id::String, df::DataFrame, idx::Dict{String, Vector{Int}})::LensClaims
+    LensClaims(LensLocalizedClaims.(collect(groupby(df[get(idx, lens_id, []), :], :lang))))
+end
+
 # Helper function to build search indices
 
 function lens_id_index(df::DataFrame)::Dict{String, Vector{Int}}
@@ -228,52 +250,67 @@ end
 # Central retrieval function, this is where it all comes together.
 # Selects table subsets based on a LensFilter and reads them into memory as data frames with associated search indices.
 # Then iterates over the applications table, pulling in data from the other tables using the indices.
+function retrieve_applications_(db::LensDB, ignore_fulltext::Bool = false)
 
-function retrieve_applications(db::LensDB, filter::LensFilter; ignore_fulltext::Bool = false)
+    df_apps = bulk_select_applications(db)
+    df_titles = bulk_select_content(db, "titles")
+    df_abstracts = bulk_select_content(db, "abstracts")
+    df_claims = bulk_select_content(db, "claims")
+    df_fulltexts = ignore_fulltext ? nothing : bulk_select_content(db, "fulltexts")
+    df_patcit = bulk_select_patent_citations(db)
+    df_nplcit = bulk_select_npl_citations(db)
+    df_nplext = bulk_select_npl_citations_ext_ids(db)
+    df_forwardcit = bulk_select_forward_citations(db)
+    df_class = bulk_select_classifications(db)
+    df_applicants = bulk_select_applicants(db)
+    df_inventors = bulk_select_inventors(db)
+    df_families = bulk_select_families(db)
 
-    println("Applying filter...")
-    @time apply_application_filter!(db, filter)
+    idx_titles = lens_id_index(df_titles)
+    idx_abstracts = lens_id_index(df_abstracts)
+    idx_claims = lens_id_index(df_claims)
+    idx_fulltexts = ignore_fulltext ? nothing : lens_id_index(df_fulltexts)
+    idx_patcit = lens_id_index(df_patcit)
+    idx_nplcit = lens_id_index(df_nplcit)
+    idx_forwardcit = lens_id_index(df_forwardcit)
+    idx_class = lens_id_index(df_class)
+    idx_applicants = lens_id_index(df_applicants)
+    idx_inventors = lens_id_index(df_inventors)
 
-    println("Selecting data from database...")
-    @time begin
-        df_apps = bulk_select_applications(db)
-        df_titles = bulk_select_content(db, "titles")
-        df_abstracts = bulk_select_content(db, "abstracts")
-        df_claims = bulk_select_content(db, "claims")
-        df_fulltexts = ignore_fulltext ? nothing : bulk_select_content(db, "fulltexts")
-        df_patcit = bulk_select_patent_citations(db)
-        df_nplcit = bulk_select_npl_citations(db)
-        df_nplext = bulk_select_npl_citations_ext_ids(db)
-        df_forwardcit = bulk_select_forward_citations(db)
-        df_class = bulk_select_classifications(db)
-        df_applicants = bulk_select_applicants(db)
-        df_inventors = bulk_select_inventors(db)
-    end
-
-    println("Building search indices...")
-    @time begin
-        idx_titles = lens_id_index(df_titles)
-        idx_abstracts = lens_id_index(df_abstracts)
-        idx_claims = lens_id_index(df_claims)
-        idx_fulltexts = ignore_fulltext ? nothing : lens_id_index(df_fulltexts)
-        idx_patcit = lens_id_index(df_patcit)
-        idx_nplcit = lens_id_index(df_nplcit)
-        idx_nplext = Dict{Tuple{String, Int}, Vector{Int}}()
-        for row in eachrow(df_nplext)
-            if haskey(idx_nplext, (row.lens_id, row.npl_cit_id))
-                push!(idx_nplext[(row.lens_id, row.npl_cit_id)], rownumber(row))
-            else
-                idx_nplext[(row.lens_id, row.npl_cit_id)] = [rownumber(row)]
-            end
+    idx_nplext = Dict{Tuple{String, Int}, Vector{Int}}()
+    for row in eachrow(df_nplext)
+        if haskey(idx_nplext, (row.lens_id, row.npl_cit_id))
+            push!(idx_nplext[(row.lens_id, row.npl_cit_id)], rownumber(row))
+        else
+            idx_nplext[(row.lens_id, row.npl_cit_id)] = [rownumber(row)]
         end
-        idx_forwardcit = lens_id_index(df_forwardcit)
-        idx_class = lens_id_index(df_class)
-        idx_applicants = lens_id_index(df_applicants)
-        idx_inventors = lens_id_index(df_inventors)
     end
 
-    println("Converting to object model...")
-    @time map(row -> LensApplication(
+    idx_app2ref = Dict{String, LensApplicationReference}()
+    for row in eachrow(df_apps)
+        idx_app2ref[row.lens_id] = LensApplicationReference(
+            LensDocumentID(
+                row.jurisdiction,
+                row.doc_number,
+                row.kind,
+                Date(row.date_published, "yyyy-mm-dd")
+            ),
+            row.lens_id
+        )
+    end
+
+    idx_app2fam = Dict{String, Int}()
+    idx_fam2app = Dict{Int, Vector{LensApplicationReference}}()
+    for row in eachrow(df_families)
+        idx_app2fam[row.lens_id] = row.family_id
+        if haskey(idx_fam2app, row.family_id)
+            push!(idx_fam2app[row.family_id], idx_app2ref[row.lens_id])
+        else
+            idx_fam2app[row.family_id] = [idx_app2ref[row.lens_id]]
+        end
+    end
+
+    map(row -> LensApplication(
         row.lens_id,
         row.publication_type,
         row.jurisdiction,
@@ -302,11 +339,50 @@ function retrieve_applications(db::LensDB, filter::LensFilter; ignore_fulltext::
             gather_cpc(row.lens_id, df_class, idx_class),
         ),
         gather_abstract(row.lens_id, df_abstracts, idx_abstracts),
-        nothing,
-        gather_fulltext(row.lens_id, df_fulltexts, idx_fulltexts),
+        gather_claims(row.lens_id, df_claims, idx_claims),
+        ignore_fulltext ? nothing : gather_fulltext(row.lens_id, df_fulltexts, idx_fulltexts),
         LensFamilies(
-            nothing,
-            nothing
+            LensFamilyReference(idx_fam2app[idx_app2fam[row.lens_id]]),
+            nothing # We currently do not store extended family information
         )
     ), eachrow(df_apps))
+
+end
+
+#--- INTERFACE STARTS HERE
+
+"""
+    retrieve_applications(db::LensDB, kwargs...)::Vector{LensApplication}
+    retrieve_applications(db::LensDB, filter::LensFilter, kwargs...)::Vector{LensApplication}
+
+Retrieve all patent applications from `db`.
+If `filter` is specified, only applications matching the filter are returned.
+
+Optional keyword arguments:
+* `ignore_fulltext`: If true, full text information will not be retrieved.
+    This may be used to improve runtime and memory footprint for large datasets.
+"""
+function retrieve_applications(db::LensDB, filter::LensFilter = LensAllFilter();
+    ignore_fulltext::Bool = false)::Vector{LensApplication}
+
+    apply_application_filter!(db, filter)
+    retrieve_applications_(db, ignore_fulltext)
+end
+
+"""
+    retrieve_families(db::LensDB, kwargs...)::Vector{LensFamily}
+    retrieve_families(db::LensDB, filter::LensFilter, kwargs...)::Vector{LensFamily}
+
+Retrieve all patent families from `db`.
+If `filter` is specified, only families matching the filter are returned.
+
+Optional keyword arguments:
+* `ignore_fulltext`: If true, full text information will not be retrieved.
+    This may be used to improve runtime and memory footprint for large datasets.
+"""
+function retrieve_families(db::LensDB, filter::LensFilter = LensAllFilter();
+    ignore_fulltext::Bool = false)::Vector{LensFamily}
+
+    apply_family_filter!(db, filter)
+    retrieve_applications_(db, ignore_fulltext) |> aggregate_families
 end
