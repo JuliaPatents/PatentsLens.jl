@@ -11,27 +11,55 @@ function ignore_fulltext!(toggle::Bool = true)
 end
 
 """
+    read_jsonl(path::String, kwargs...)
+
 Return a `Vector{LensApplication}` with all applications from the Lens.org JSON lines data file at `path`.
+
+Optional keyword arguments:
+* `skip_on_error`: If true, loading process will not terminate when encountering a parsing error,
+    but continue with the next record instead.
 """
-function read_jsonl(path::String)::Vector{LensApplication}
-    if read(open(path, "r"), Char) != '\ufeff'
-        JSON3.read(open(path, "r"), Vector{LensApplication}, jsonlines = true)
-    else
-        instream = open(path, "r")
-        read(instream, Char)
-        JSON3.read(instream, Vector{LensApplication}, jsonlines = true)
+function read_jsonl(path::String; skip_on_error::Bool = false)::Vector{LensApplication}
+    bom = read(open(path, "r"), Char) == '\ufeff'
+    apps = LensApplication[]
+    line = 1
+    open(path, "r") do f
+        bom && read(f, Char)
+        while !eof(f)
+            try
+                app_raw = readline(f)
+                app = JSON3.read(app_raw, LensApplication)
+                push!(apps, app)
+            catch e
+                println(stderr, "Encountered parsing error in file $path at line $line:")
+                if skip_on_error
+                    showerror(stderr, e)
+                    println(stderr)
+                else
+                    rethrow()
+                end
+            end
+            line = line + 1
+        end
     end
+    apps
 end
 
 """
-    load_jsonl!(db::LensDB, path::String, chunk_size::Int = 5000)
+    load_jsonl!(db::LensDB, path::String, kwargs...)
 
 Read all application data from the Lens.org JSON lines data file at `path`, and store it in the  SQLite database `db`.
 The database must be set up with the proper table schema beforehand.
-`chunk_size` controls how many lines are read into memory before being bulk-inserted into the database.
-Higher values will improve speed at the cost of requiring more memory.
+
+Optional keyword arguments:
+* `chunk_size`: controls how many lines are read into memory before being bulk-inserted into the database.
+    Higher values will improve speed at the cost of requiring more memory.
+* `skip_on_error`: If true, loading process will not terminate when encountering a parsing error,
+    but continue with the next record instead.
 """
-function load_jsonl!(db::LensDB, path::String, chunk_size::Int = 5000)
+function load_jsonl!(db::LensDB, path::String;
+    chunk_size::Int = 5000, skip_on_error::Bool = false)
+
     bom = read(open(path, "r"), Char) == '\ufeff'
     open(path, "r") do f
         bom && read(f, Char)
@@ -40,9 +68,19 @@ function load_jsonl!(db::LensDB, path::String, chunk_size::Int = 5000)
         chunk = 1
         println("Processing chunk #$chunk (app #1 - #$chunk_size)")
         while !eof(f)
-            app_raw = readline(f)
-            app = JSON3.read(app_raw, LensApplication)
-            push!(apps, app)
+            try
+                app_raw = readline(f)
+                app = JSON3.read(app_raw, LensApplication)
+                push!(apps, app)
+            catch e
+                println(stderr, "Encountered parsing error in file $path at line $line:")
+                if skip_on_error
+                    showerror(stderr, e)
+                    println(stderr)
+                else
+                    rethrow()
+                end
+            end
             if mod(line, chunk_size) == 0
                 bulk_insert_apps!(db.db, apps)
                 apps = LensApplication[]
