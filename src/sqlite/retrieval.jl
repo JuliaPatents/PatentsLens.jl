@@ -362,7 +362,7 @@ Optional keyword arguments:
 * `ignore_fulltext`: If true, full text information will not be retrieved.
     This may be used to improve runtime and memory footprint for large datasets.
 """
-function retrieve_applications(db::LensDB, filter::LensFilter = LensAllFilter();
+function retrieve_applications(db::LensDB, filter::AbstractFilter = LensAllFilter();
     ignore_fulltext::Bool = false)::Vector{LensApplication}
 
     apply_application_filter!(db, filter)
@@ -380,7 +380,7 @@ Optional keyword arguments:
 * `ignore_fulltext`: If true, full text information will not be retrieved.
     This may be used to improve runtime and memory footprint for large datasets.
 """
-function retrieve_families(db::LensDB, filter::LensFilter = LensAllFilter();
+function retrieve_families(db::LensDB, filter::AbstractFilter = LensAllFilter();
     ignore_fulltext::Bool = false)::Vector{LensFamily}
 
     apply_family_filter!(db, filter)

@@ -195,7 +195,7 @@ function prepdata(db::LensDB, l::AnalysisLevel)
     tally(db, l, Vector{Grouping}()) |> DataFrame
 end
 
-function prepdata(db::LensDB, l::AnalysisLevel, f::LensFilter)
+function prepdata(db::LensDB, l::AnalysisLevel, f::AbstractFilter)
     apply_filter!(db, l, f)
     tally(db, l, Vector{Grouping}()) |> DataFrame
 end
@@ -206,7 +206,7 @@ function prepdata(db::LensDB, l::AnalysisLevel, g1::Grouping)
     tally(db, l, [g1]) |> DataFrame
 end
 
-function prepdata(db::LensDB, l::AnalysisLevel, f::LensFilter, g1::Grouping)
+function prepdata(db::LensDB, l::AnalysisLevel, f::AbstractFilter, g1::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     tally(db, l, [g1]) |> DataFrame
@@ -219,7 +219,7 @@ function prepdata(db::LensDB, l::AnalysisLevel, g1::Grouping, g2::Grouping)
     tally(db, l, [g1, g2]) |> DataFrame
 end
 
-function prepdata(db::LensDB, l::AnalysisLevel, f::LensFilter, g1::Grouping, g2::Grouping)
+function prepdata(db::LensDB, l::AnalysisLevel, f::AbstractFilter, g1::Grouping, g2::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
@@ -234,7 +234,7 @@ function prepdata(db::LensDB, l::AnalysisLevel, g1::Grouping, g2::Grouping, g3::
     tally(db, l, [g1, g2, g3]) |> DataFrame
 end
 
-function prepdata(db::LensDB, l::AnalysisLevel, f::LensFilter, g1::Grouping, g2::Grouping, g3::Grouping)
+function prepdata(db::LensDB, l::AnalysisLevel, f::AbstractFilter, g1::Grouping, g2::Grouping, g3::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)

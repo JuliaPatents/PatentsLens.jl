@@ -15,7 +15,7 @@ function define_taxon!(
     db::LensDB,
     taxonomy_name::String,
     taxon_name::String,
-    filter::LensFilter;
+    filter::AbstractFilter;
     expand::Bool = true)
 
     expand || DBInterface.execute(

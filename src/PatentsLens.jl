@@ -21,10 +21,6 @@ export LensApplication, LensApplicationReference
 export LensFamily
 # Data Sources
 export LensDB
-# Database Filters
-export LensFilter, LensClassificationFilter, LensContentFilter, LensTaxonomicFilter,
-    LensUnionFilter, LensIntersectionFilter, LensAllFilter, TitleSearch,
-    AbstractSearch, ClaimsSearch, FulltextSearch
 
 # Function exports
 # IDs and referencing

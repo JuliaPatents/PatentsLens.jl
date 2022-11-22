@@ -1,15 +1,9 @@
-"""
-Abstract type representing a filter that can be applied to a PatentsLens database.
-In principle, any predicate that can apply to an application can be a filter.
-Filter are composable using the `LensUnionFilter` and `LensIntersectionFilter` structs and the corresponding `|` and `&` infix operators.
-"""
-abstract type LensFilter end
 
 "Generate an SQLite query to select the Lens IDs of all applications matching `f`."
-function query_select_applications(f::LensFilter)::String end
+function query_select_applications(f::AbstractFilter)::String end
 
 "Generate an SQLite query to select the family IDs of all families matching `f`."
-function query_select_families(f::LensFilter)::String end
+function query_select_families(f::AbstractFilter)::String end
 
 """ Remove all active filters from a PatentsLens database. """
 function clear_filter!(db::LensDB)
@@ -20,14 +14,14 @@ function clear_filter!(db::LensDB)
 end
 
 """ Apply `filter` to database `db`, generating a temporary table of matching applications. """
-function apply_application_filter!(db::LensDB, filter::LensFilter)
+function apply_application_filter!(db::LensDB, filter::AbstractFilter)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS application_filter;")
     DBInterface.execute(db.db,
         "CREATE TEMP TABLE application_filter AS " * query_select_applications(filter))
 end
 
 """ Apply `filter` to database `db`, generating a temporary table of matching patent families. """
-function apply_family_filter!(db::LensDB, filter::LensFilter)
+function apply_family_filter!(db::LensDB, filter::AbstractFilter)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS family_filter;")
     DBInterface.execute(db.db,
         "CREATE TEMP TABLE family_filter AS " * query_select_families(filter))
@@ -55,19 +49,7 @@ db_key(::Subgroup) = "symbol"
 db_key(::IPC) = "IPC"
 db_key(::CPC) = "CPC"
 
-"""
-Struct representing a database filter by IPC-like classification.
-* `system`: The classification system used. Can be either `IPC()` or `CPC()`.
-* `level`: The `AbstractIPCLikeClassificationLevel` at which to filter (`Section()`, `Class()`, `Subclass()` etc.)
-* `symbols`: A `Vector{IPCLikeSymbol}` of all classifications included. The filter will match any application classified by at least one of these.
-"""
-struct LensClassificationFilter <: LensFilter
-    system::IPCLikeSystem
-    level::AbstractIPCLikeClassificationLevel
-    symbols::Vector{<:IPCLikeSymbol}
-end
-
-function query_select_applications(filter::LensClassificationFilter)
+function query_select_applications(filter::ClassificationFilter)
     symbols = join(map(s -> '"' * symbol(filter.level, s) * '"', filter.symbols), ",")
     """
     SELECT DISTINCT lens_id
@@ -77,7 +59,7 @@ function query_select_applications(filter::LensClassificationFilter)
     """
 end
 
-function query_select_families(filter::LensClassificationFilter)
+function query_select_families(filter::ClassificationFilter)
     symbols = join(map(s -> '"' * symbol(filter.level, s) * '"', filter.symbols), ",")
     """
     SELECT DISTINCT family_id
@@ -88,41 +70,12 @@ function query_select_families(filter::LensClassificationFilter)
     """
 end
 
-"Abstract type representing a fulltext-searchable application content field."
-abstract type LensSearchableContentField end
-
-struct TitleSearch <: LensSearchableContentField end
 db_key(::TitleSearch) = "titles"
-
-struct AbstractSearch <: LensSearchableContentField end
 db_key(::AbstractSearch) = "abstracts"
-
-struct ClaimsSearch <: LensSearchableContentField end
 db_key(::ClaimsSearch) = "claims"
-
-struct FulltextSearch <: LensSearchableContentField end
 db_key(::FulltextSearch) = "fulltexts"
 
-"""
-Struct representing a database filter using full-text search on various content fields.
-* `search_query`: The keyword(s), phrase(s) or complex query to be used for the search.
-    For query syntax consult https://www.sqlite.org/fts5.html#full_text_query_syntax.
-* `field`: Specifies which `LensSearchableContentField` is used for the search.
-    Possible values are `TitleSearch()`, `AbstractSearch()`, `ClaimsSearch()`, or `FulltextSearch()`
-* `languages`: A vector of two-character language codes specifying the languages for which matches are included.
-    If an empty vector is passed (as by default), all available languages are included.
-"""
-Base.@kwdef struct LensContentFilter <: LensFilter
-    search_query::String
-    field::LensSearchableContentField
-    languages::Vector{String} = []
-end
-
-function LensContentFilter(search_query::String, field::LensSearchableContentField)
-    LensContentFilter(search_query, field, Vector{String}())
-end
-
-function query_select_applications(filter::LensContentFilter)
+function query_select_applications(filter::ContentFilter)
     if (isempty(filter.languages))
         """
         SELECT DISTINCT lens_id FROM $(db_key(filter.field))
@@ -138,7 +91,7 @@ function query_select_applications(filter::LensContentFilter)
     end
 end
 
-function query_select_families(filter::LensContentFilter)
+function query_select_families(filter::ContentFilter)
     if (isempty(filter.languages))
         """
         SELECT DISTINCT family_id
@@ -164,12 +117,12 @@ Struct representing a database filter using a custom taxonomy.
 * `included_taxa`: The names of the individual taxa to include.
     If an empty list is passed, all known taxa within the taxonomy are included.
 """
-struct LensTaxonomicFilter <: LensFilter
+struct TaxonomicFilter <: AbstractFilter
     taxonomy::String
     included_taxa::Vector{String}
 end
 
-function query_select_applications(filter::LensTaxonomicFilter)
+function query_select_applications(filter::TaxonomicFilter)
     if (isempty(filter.included_taxa))
         """
         SELECT DISTINCT lens_id FROM taxonomies
@@ -185,7 +138,7 @@ function query_select_applications(filter::LensTaxonomicFilter)
     end
 end
 
-function query_select_families(filter::LensTaxonomicFilter)
+function query_select_families(filter::TaxonomicFilter)
     if (isempty(filter.included_taxa))
         """
         SELECT DISTINCT family_id
@@ -205,53 +158,34 @@ function query_select_families(filter::LensTaxonomicFilter)
     end
 end
 
-"Struct representing the intersection or conjunction of two `LensFilter`s."
-struct LensIntersectionFilter <: LensFilter
-    a::LensFilter
-    b::LensFilter
-end
-
-Base.:&(a::LensFilter, b::LensFilter) = LensIntersectionFilter(a, b)
-
-function query_select_applications(filter::LensIntersectionFilter)
+function query_select_applications(filter::IntersectionFilter)
     qa = query_select_applications(filter.a)
     qb = query_select_applications(filter.b)
     "SELECT * FROM ($qa INTERSECT $qb)"
 end
 
-function query_select_families(filter::LensIntersectionFilter)
+function query_select_families(filter::IntersectionFilter)
     qa = query_select_families(filter.a)
     qb = query_select_families(filter.b)
     "SELECT * FROM ($qa INTERSECT $qb)"
 end
 
-"Struct representing the union or disjunction of two `LensFilter`s."
-struct LensUnionFilter <: LensFilter
-    a::LensFilter
-    b::LensFilter
-end
-
-Base.:|(a::LensFilter, b::LensFilter) = LensUnionFilter(a, b)
-
-function query_select_applications(filter::LensUnionFilter)
+function query_select_applications(filter::UnionFilter)
     qa = query_select_applications(filter.a)
     qb = query_select_applications(filter.b)
     "SELECT * FROM ($qa UNION $qb)"
 end
 
-function query_select_families(filter::LensUnionFilter)
+function query_select_families(filter::UnionFilter)
     qa = query_select_families(filter.a)
     qb = query_select_families(filter.b)
     "SELECT * FROM ($qa UNION $qb)"
 end
 
-"Pseudo-filter that matches all applications or families in a database."
-struct LensAllFilter <: LensFilter end
-
-function query_select_applications(filter::LensAllFilter)
+function query_select_applications(filter::AllFilter)
     "SELECT lens_id FROM applications;"
 end
 
-function query_select_families(filter::LensAllFilter)
+function query_select_families(filter::AllFilter)
     "SELECT DISTINCT id AS family_id FROM families;"
 end
