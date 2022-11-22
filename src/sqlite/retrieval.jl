@@ -349,40 +349,16 @@ function retrieve_applications_(db::LensDB, ignore_fulltext::Bool = false)
 
 end
 
-#--- INTERFACE STARTS HERE
-
-"""
-    retrieve_applications(db::LensDB, kwargs...)::Vector{LensApplication}
-    retrieve_applications(db::LensDB, filter::LensFilter, kwargs...)::Vector{LensApplication}
-
-Retrieve all patent applications from `db`.
-If `filter` is specified, only applications matching the filter are returned.
-
-Optional keyword arguments:
-* `ignore_fulltext`: If true, full text information will not be retrieved.
-    This may be used to improve runtime and memory footprint for large datasets.
-"""
-function retrieve_applications(db::LensDB, filter::AbstractFilter = LensAllFilter();
+function PatentsBase.applications(ds::LensDB, filter::AbstractFilter = AllFilter();
     ignore_fulltext::Bool = false)::Vector{LensApplication}
 
-    apply_application_filter!(db, filter)
-    retrieve_applications_(db, ignore_fulltext)
+    apply_application_filter!(ds, filter)
+    retrieve_applications_(ds, ignore_fulltext)
 end
 
-"""
-    retrieve_families(db::LensDB, kwargs...)::Vector{LensFamily}
-    retrieve_families(db::LensDB, filter::LensFilter, kwargs...)::Vector{LensFamily}
-
-Retrieve all patent families from `db`.
-If `filter` is specified, only families matching the filter are returned.
-
-Optional keyword arguments:
-* `ignore_fulltext`: If true, full text information will not be retrieved.
-    This may be used to improve runtime and memory footprint for large datasets.
-"""
-function retrieve_families(db::LensDB, filter::AbstractFilter = LensAllFilter();
+function PatentsBase.families(ds::LensDB, filter::AbstractFilter = AllFilter();
     ignore_fulltext::Bool = false)::Vector{LensFamily}
 
-    apply_family_filter!(db, filter)
-    retrieve_applications_(db, ignore_fulltext) |> aggregate_families
+    apply_family_filter!(ds, filter)
+    retrieve_applications_(ds, ignore_fulltext) |> aggregate_families
 end
