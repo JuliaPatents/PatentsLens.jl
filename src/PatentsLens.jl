@@ -3,6 +3,7 @@ module PatentsLens
 using Dates
 using JSON3
 using PatentsBase
+using PatentsLandscapes
 using StructTypes
 using SQLite
 using DataFrames

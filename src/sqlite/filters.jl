@@ -111,17 +111,6 @@ function query_select_families(filter::ContentFilter)
     end
 end
 
-"""
-Struct representing a database filter using a custom taxonomy.
-* `taxonomy`: The name of the taxonomy by which to filter.
-* `included_taxa`: The names of the individual taxa to include.
-    If an empty list is passed, all known taxa within the taxonomy are included.
-"""
-struct TaxonomicFilter <: AbstractFilter
-    taxonomy::String
-    included_taxa::Vector{String}
-end
-
 function query_select_applications(filter::TaxonomicFilter)
     if (isempty(filter.included_taxa))
         """
