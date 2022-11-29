@@ -56,10 +56,13 @@ Optional keyword arguments:
     Higher values will improve speed at the cost of requiring more memory.
 * `skip_on_error`: If true, loading process will not terminate when encountering a parsing error,
     but continue with the next record instead.
+* `rebuild_index`: If true (default), the search index for the database will be dropped and fully rebuilt instead of updating it.
+    This tends to be faster when importing a large amount of data relative to the amount already in the database.
 """
 function load_jsonl!(db::LensDB, path::String;
-    chunk_size::Int = 5000, skip_on_error::Bool = false)
+    chunk_size::Int = 5000, skip_on_error::Bool = false, rebuild_index::Bool = true)
 
+    rebuild_index && drop_index!(db.db)
     bom = read(open(path, "r"), Char) == '\ufeff'
     open(path, "r") do f
         bom && read(f, Char)
@@ -94,4 +97,5 @@ function load_jsonl!(db::LensDB, path::String;
         end
     end
     # aggregate_family_citations!(db.db)
+    rebuild_index && build_index!(db.db)
 end
