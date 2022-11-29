@@ -10,6 +10,9 @@ jobs:
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
     steps:
       - uses: actions/checkout@v2
+      - uses: julia-actions/add-julia-registry@v1
+        with:
+          registry: JuliaPatents/Registry
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
