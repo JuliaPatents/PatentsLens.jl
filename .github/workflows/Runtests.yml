@@ -13,6 +13,7 @@ jobs:
       - uses: julia-actions/add-julia-registry@v1
         with:
           registry: JuliaPatents/Registry
+          key: ${{ secrets.PRIV_KEY }}
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
