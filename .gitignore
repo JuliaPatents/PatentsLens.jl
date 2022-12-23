@@ -5,3 +5,7 @@
 /deps/deps.jl
 /docs/build
 /data
+*.db
+*.db-journal
+queries.sql
+Manifest.toml

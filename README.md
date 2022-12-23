@@ -1,40 +1,100 @@
 # PatentsLens.jl
 
-[![codecov.io](http://codecov.io/github/jfb-h/PatentsLens.jl/coverage.svg?branch=master)](http://codecov.io/github/jfb-h/PatentsLens.jl?branch=master)
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://jfb-h.github.io/PatentsLens.jl/stable)
-[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://jfb-h.github.io/PatentsLens.jl/dev)
-
-
-*A helper package for reading Lens.org patent data for use in Patents.jl.*
+*Julia package for handling Lens.org patent data.*
 
 ## Installation
 
-The package is currently not registered but can be added directly via the github package URL.
-From the julia REPL, type `]` to enter the Pkg REPL and run:
+### Adding the registry
+
+All packages in the JuliaPatents family are registered in the [JuliaPatents registry](https://github.com/JuliaPatents/Registry).
+To add the registry, enter the julia REPL and run:
 
 ```julia 
-pkg> add https://github.com/jfb-h/PatentsLens.jl
-
-julia> using PatentsLens
+using Pkg
+pkg"registry add https://github.com/JuliaPatents/Registry"
 ``` 
 
-## Example
+This only needs to be done once.
 
-This package does exactly one thing: Import patent metadata as exported from [Lens.org](https://www.lens.org/) in the jsonlines (`.jsonl`) format to a vector of `Patents.Application`'s. 
+### Adding the package
 
-Loading data from a file `test.jsonl` looks like this:
+After adding the registry, the package can be added to any Julia environment:
 
 ```julia
-julia> PatentsLens.read("test.jsonl")
-500-element Vector{Patents.Application}:
- 000-008-730-872-158 | 2005-09-14 | CN1668902A
- 000-039-658-336-810 | 1996-10-02 | EP0734313A1
- 000-041-908-077-974 | 2011-04-13 | GB201103495D0
- 000-044-326-144-587 | 2018-12-14 | CN108995084A
- 000-053-788-642-999 | 1984-06-15 | AT7863T
- 000-085-962-043-833 | 2004-02-26 | DE10236830A1
- 000-158-289-997-294 | 2016-01-20 | EP2973744A1
- 000-174-954-386-873 | 2016-05-11 | CN105563695A
- [...]
+using Pkg
+pkg"add PatentsLens"
 ```
 
+The package can now be loaded:
+
+```julia
+using PatentsBase, PatentsLens
+```
+
+### Optional analysis interface
+
+PatentsLens.jl implements the analysis interface defined by [PatentsLandscapes.jl](https://github.com/JuliaPatents/PatentsLandscapes.jl).
+To use it, import the PatentsLandscapes package (included in this package's dependencies):
+
+```julia
+using PatentsLandscapes
+```
+
+## Getting started
+
+The main purpose of this package is to import patent metadata as exported from [Lens.org](https://www.lens.org/) in the jsonlines (`.jsonl`) format.
+
+The package supports two data models: 
+
+* An in-memory object model similar to the original JSON, using Julia structs
+* An SQLite-based relational model that offers indexed and fast property-based and full-text search, aggregation, and more
+
+The [PatentsLandscapes.jl](https://github.com/JuliaPatents/PatentsLandscapes.jl) API is currently only implemented for the SQLite model.
+
+### Using the object model (in-memory)
+
+Loading data from a file `test.jsonl` into memory looks like this:
+
+```julia
+applications = PatentsLens.read_jsonl("test.jsonl")
+```
+
+The `LensApplication` struct implements the interface defined in [PatentsBase.jl](https://github.com/JuliaPatents/PatentsBase.jl).
+
+The dataset can easily be elevated to the simple family level:
+
+```julia
+families = PatentsLens.aggregate_families(applications)
+```
+
+## Using the SQLite database
+
+To begin using the SQLite model, create a new database:
+
+```julia
+db = LensDB("database.db")
+```
+
+This will create a new SQLite database at the specified path and initialize it with the PatentsLens schema.
+
+Data can then be loaded into the new database like this:
+
+```julia
+PatentsLens.load_jsonl!(db, "test.jsonl")
+```
+
+Because the data needs to be transformed into a relational form, this step may take a while.
+
+Data can be retrieved from the database and converted back into the object model:
+
+```julia
+all_apps = applications(db)
+all_fams = families(db)
+```
+
+Subsets of the data can be created and accessed using PatentsBase's Filter API:
+
+```julia
+# Retrieve all patent families from the database that mention polylactic acid in their abstract
+pla_fams = families(db, ContentFilter("polylactic OR PLA", AbstractSearch))
+```
