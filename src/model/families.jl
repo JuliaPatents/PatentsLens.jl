@@ -27,7 +27,7 @@ end
 
 PatentsBase.applications(f::LensFamily) = f.members
 
-function count_forwardcitations(f::LensFamily) 
+function count_forwardcitations(f::LensFamily)
     cit = String[]
     for a in applications(f)
         p = a.biblio.cited_by.patents
@@ -40,7 +40,6 @@ function count_forwardcitations(f::LensFamily)
 end
 
 """
-    earliest_date_published(f)
 Return the earliest `Date` of publication of all the applications in family `f`
 """
 earliest_date_published(f::LensFamily)::Date = minimum(date_published.(applications(f)))

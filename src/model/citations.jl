@@ -70,7 +70,6 @@ PatentsBase.external_ids(lc::LensNPLCitation) =
 # Added these here for now, should probably go to base at some point
 
 """
-    citationgraph(families)
 Return a `SimpleDiGraph` representing the network of citations among `families`.
 An edge from node i to node j indicates that j cited i and will be included in the
 output graph iff the earliest filing of j is after that of i.

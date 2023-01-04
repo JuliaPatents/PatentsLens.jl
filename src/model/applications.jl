@@ -19,7 +19,9 @@ struct LensFamilies # Helper type, do not export
 end
 StructTypes.StructType(::Type{LensFamilies}) = StructTypes.Struct()
 
-"""Struct representing a patent application retrieved from Lens.org"""
+"""
+Struct representing a patent application retrieved from Lens.org.
+"""
 struct LensApplication <: AbstractApplication
     lens_id::String
     publication_type::String
