@@ -362,3 +362,15 @@ function PatentsBase.families(ds::LensDB, filter::AbstractFilter = AllFilter();
     apply_family_filter!(ds, filter)
     retrieve_applications_(ds, ignore_fulltext) |> aggregate_families
 end
+
+function PatentsBase.find_application(ref::AbstractApplicationID, ds::LensDB)
+    clear_filter!(ds)
+    DBInterface.execute(ds, """
+        CREATE TABLE application_filter AS
+            SELECT DISTINCT lens_id FROM applications
+            WHERE jurisdiction = '$(jurisdiction(ref))'
+            AND doc_number = '$(doc_number(ref));
+    """)
+    res = retrieve_applications(ds)
+    isempty(res) ? nothing : res[1]
+end
