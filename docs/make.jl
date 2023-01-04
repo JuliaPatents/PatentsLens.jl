@@ -1,4 +1,4 @@
-using Documenter, PatentsLens, DocStringExtensions
+using Documenter, PatentsLens
 
 makedocs(
     modules = [PatentsLens],
