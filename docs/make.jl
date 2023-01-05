@@ -7,5 +7,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/JuliaPatents/PatentsLens.jl.git"
+    repo = "github.com/JuliaPatents/PatentsLens.jl.git",
+    devbranch = "main"
 )
