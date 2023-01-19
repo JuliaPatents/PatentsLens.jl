@@ -7,7 +7,7 @@ StructTypes.lower(f::LensFamily) = f.members
 StructTypes.lowertype(::Type{LensFamily}) = Vector{LensApplication}
 StructTypes.construct(::Type{LensFamily}, v::Vector{LensApplication}) = LensFamily(v)
 
-function aggregate_families(apps::Vector{LensApplication})
+function PatentsBase.aggregate_families(apps::Vector{LensApplication})
     visited = Dict(document_id(a) => false for a in apps)
     idx = Dict(document_id(a) => i for (i, a) in enumerate(apps))
     families = LensFamily[]
@@ -26,18 +26,6 @@ function aggregate_families(apps::Vector{LensApplication})
 end
 
 PatentsBase.applications(f::LensFamily) = f.members
-
-function count_forwardcitations(f::LensFamily)
-    cit = String[]
-    for a in applications(f)
-        p = a.biblio.cited_by.patents
-        isnothing(p) && continue
-        for c in p
-            push!(cit, lens_id(c.ref))
-        end
-    end
-    length(unique(cit))
-end
 
 """
 Return the earliest `Date` of publication of all the applications in family `f`

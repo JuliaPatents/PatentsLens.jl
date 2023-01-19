@@ -1,9 +1,7 @@
 Base.show(io::IO, lt::LensLocalizedText) = print(io, "($(lt.lang)) $(lt.text)")
 Base.show(io::IO, t::LensTitle) = print(io, join(t.title, " / "))
 Base.show(io::IO, a::LensAbstract) = print(io, join(a.abstract, " / "))
-Base.show(io::IO, c::LensClaim) = print(io, join(c.claim_text, "; "))
-Base.show(io::IO, c::LensLocalizedClaims) = print(io, "($(c.lang))\n" * join(c.claims, "\n"))
-Base.show(io::IO, c::LensClaims) = print(io, join(c.claims, "\n"))
+Base.show(io::IO, c::LensClaim) = print(io, join(c.claim, " \n ") * "\n")
 
 function Base.show(io::IO, t::LensFulltext)
     !isnothing(lang(t)) && print(io, "($(lang(t))) ")

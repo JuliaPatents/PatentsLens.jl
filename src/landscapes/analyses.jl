@@ -2,7 +2,7 @@
 grouping_column(::Applicants) = "applicant_id"
 summary_columns(::Applicants) = "applicant_id, country, name"
 
-function create_grouping(db::LensDB, dim::Int, ::Applications, a::Applicants)
+function create_grouping(db::LensDB, dim::Int, ::ApplicationLevel, a::Applicants)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     cond = isempty(a.applicants) ? "" : "WHERE applicant_id IN ($(join(a.applicants, ",")))"
     DBInterface.execute(db.db, """
@@ -14,7 +14,7 @@ function create_grouping(db::LensDB, dim::Int, ::Applications, a::Applicants)
     """)
 end
 
-function create_grouping(db::LensDB, dim::Int, ::Families, a::Applicants)
+function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, a::Applicants)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     cond = isempty(a.applicants) ? "" : "WHERE applicant_id IN ($(join(a.applicants, ",")))"
     DBInterface.execute(db.db, """
@@ -30,7 +30,7 @@ end
 grouping_column(::Jurisdictions) = "jurisdiction"
 summary_columns(::Jurisdictions) = "jurisdiction"
 
-function create_grouping(db::LensDB, dim::Int, ::Applications, j::Jurisdictions)
+function create_grouping(db::LensDB, dim::Int, ::ApplicationLevel, j::Jurisdictions)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     if isempty(j.jurisdictions)
         cond = ""
@@ -45,7 +45,7 @@ function create_grouping(db::LensDB, dim::Int, ::Applications, j::Jurisdictions)
     """)
 end
 
-function create_grouping(db::LensDB, dim::Int, ::Families, j::Jurisdictions)
+function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, j::Jurisdictions)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     if isempty(j.jurisdictions)
         cond = ""
@@ -64,7 +64,7 @@ end
 grouping_column(t::Taxonomy) = t.name
 summary_columns(t::Taxonomy) = t.name
 
-function create_grouping(db::LensDB, dim::Int, ::Applications, t::Taxonomy)
+function create_grouping(db::LensDB, dim::Int, ::ApplicationLevel, t::Taxonomy)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     if isempty(t.included_taxa)
         cond = ""
@@ -80,7 +80,7 @@ function create_grouping(db::LensDB, dim::Int, ::Applications, t::Taxonomy)
     """)
 end
 
-function create_grouping(db::LensDB, dim::Int, ::Families, t::Taxonomy)
+function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, t::Taxonomy)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     if isempty(t.included_taxa)
         cond = ""
@@ -107,7 +107,7 @@ strftime_code(::Years) = "%Y"
 grouping_column(::Months) = "month"
 strftime_code(::Months) = "%Y-%m"
 
-function create_grouping(db::LensDB, dim::Int, ::Applications, t::TimeTrend)
+function create_grouping(db::LensDB, dim::Int, ::ApplicationLevel, t::TimeTrend)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     DBInterface.execute(db.db, """
         CREATE TEMP TABLE grouping$dim AS
@@ -116,7 +116,7 @@ function create_grouping(db::LensDB, dim::Int, ::Applications, t::TimeTrend)
     """)
 end
 
-function create_grouping(db::LensDB, dim::Int, ::Families, t::TimeTrend)
+function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, t::TimeTrend)
     DBInterface.execute(db.db, "DROP TABLE IF EXISTS grouping$dim")
     DBInterface.execute(db.db, """
         CREATE TEMP TABLE grouping$dim AS
@@ -129,7 +129,7 @@ function create_grouping(db::LensDB, dim::Int, ::Families, t::TimeTrend)
     """)
 end
 
-function tally(db::LensDB, ::Applications, groupings::Vector{<:Grouping})
+function tally(db::LensDB, ::ApplicationLevel, groupings::Vector{<:Grouping})
     selection = isempty(groupings) ? "" : join(summary_columns.(groupings), ", ") * ","
     grouping = isempty(groupings) ? "" : "GROUP BY " * join(grouping_column.(groupings), ", ")
     joins = ""
@@ -143,7 +143,7 @@ function tally(db::LensDB, ::Applications, groupings::Vector{<:Grouping})
     """)
 end
 
-function tally(db::LensDB, ::Families, groupings::Vector{<:Grouping})
+function tally(db::LensDB, ::FamilyLevel, groupings::Vector{<:Grouping})
     selection = isempty(groupings) ? "" : join(summary_columns.(groupings), ", ") * ","
     grouping = isempty(groupings) ? "" : "GROUP BY " * join(grouping_column.(groupings), ", ")
     joins = ""
@@ -157,46 +157,46 @@ function tally(db::LensDB, ::Families, groupings::Vector{<:Grouping})
     """)
 end
 
-apply_filter!(db, ::Applications, f) = apply_application_filter!(db, f)
-apply_filter!(db, ::Families, f) = apply_family_filter!(db, f)
+apply_filter!(db, ::ApplicationLevel, f) = apply_application_filter!(db, f)
+apply_filter!(db, ::FamilyLevel, f) = apply_family_filter!(db, f)
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel)
     clear_filter!(db)
     tally(db, l, Vector{Grouping}()) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, f::AbstractFilter)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter)
     apply_filter!(db, l, f)
     tally(db, l, Vector{Grouping}()) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, g1::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping)
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     tally(db, l, [g1]) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, f::AbstractFilter, g1::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     tally(db, l, [g1]) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, g1::Grouping, g2::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping, g2::Grouping)
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
     tally(db, l, [g1, g2]) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, f::AbstractFilter, g1::Grouping, g2::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping, g2::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
     tally(db, l, [g1, g2]) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, g1::Grouping, g2::Grouping, g3::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping, g2::Grouping, g3::Grouping)
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
@@ -204,7 +204,7 @@ function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, g
     tally(db, l, [g1, g2, g3]) |> DataFrame
 end
 
-function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::AnalysisLevel, f::AbstractFilter, g1::Grouping, g2::Grouping, g3::Grouping)
+function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping, g2::Grouping, g3::Grouping)
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)

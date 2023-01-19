@@ -31,5 +31,6 @@ inventors(p::LensParties) = p.inventors !== nothing ? p.inventors : []
 PatentsBase.name(a::LensApplicant) = a.extracted_name.value
 PatentsBase.name(a::LensInventor) = a.extracted_name.value
 PatentsBase.names(a::LensApplicant) = [name(a)]
+PatentsBase.names(a::LensInventor) = [name(a)]
 PatentsBase.country(a::LensApplicant) = a.residence
 PatentsBase.country(a::LensInventor) = a.residence

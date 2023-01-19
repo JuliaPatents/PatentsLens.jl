@@ -161,11 +161,11 @@ function LensInventor(dfr::DataFrameRow)
     )
 end
 
-LensClaim(sdf::SubDataFrame) = LensClaim(sdf.text)
+LensRawClaim(sdf::SubDataFrame) = LensRawClaim(sdf.text)
 
 function LensLocalizedClaims(sdf::SubDataFrame)
     LensLocalizedClaims(
-        LensClaim.(groupby(sdf, :claim_id) |> collect),
+        LensRawClaim.(groupby(sdf, :claim_id) |> collect),
         (nrow(sdf) < 1 || ismissing(sdf[1, :lang])) ? nothing : sdf[1, :lang]
     )
 end
@@ -373,4 +373,17 @@ function PatentsBase.find_application(ref::AbstractApplicationID, ds::LensDB)
     """)
     res = retrieve_applications(ds)
     isempty(res) ? nothing : res[1]
+end
+
+function PatentsBase.siblings(a::LensApplication, ds::LensDB)
+    clear_filter!(ds)
+    DBInterface.execute(ds, """
+        CREATE TABLE application_filter AS
+            SELECT DISTINCT lens_id FROM family_memberships
+            WHERE family_id IN (
+                SELECT family_id FROM family_memberships
+                WHERE lens_id = '$(lens_id(a))'
+            );
+    """)
+    retrieve_applications(ds)
 end

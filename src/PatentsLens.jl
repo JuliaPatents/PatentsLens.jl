@@ -11,7 +11,7 @@ using Graphs
 
 # Type exports
 # Content
-export LensTitle, LensAbstract, LensClaim, LensClaims, LensFulltext
+export LensTitle, LensAbstract, LensClaim, LensFulltext
 # Citations
 export LensNPLCitation, LensPatentCitation, LensForwardCitation
 # Parties
@@ -23,9 +23,6 @@ export LensFamily
 # Data Sources
 export LensDB
 
-# Function exports
-# IDs and referencing
-export lens_id, document_id, reference
 
 include("docs/templates.jl") # this always needs to be included before anything else!
 

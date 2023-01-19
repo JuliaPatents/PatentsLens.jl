@@ -40,72 +40,72 @@ struct LensApplication <: AbstractApplication
 end
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 
-"""Return a `String` with the unique Lens ID of application `a`"""
-lens_id(a::LensApplication)::String = a.lens_id
 """Return a `String` with the document type of application `a`"""
 publication_type(a::LensApplication)::String = a.publication_type
+
 """Return the `Date` of publication of application `a`"""
 date_published(a::LensApplication)::Date = a.date_published
+
 """Return a `String` with the full document key of application `a`"""
 doc_key(a::LensApplication)::String = a.doc_key
+
 """Return an `Int` representing the database ID of application `a`, or `nothing` if the field is missing"""
 docdb_id(a::LensApplication)::Union{Int, Nothing} = a.docdb_id
+
 """Return a `String` with the language code of application `a`, or `nothing` if the field is missing"""
 language(a::LensApplication)::Union{String, Nothing} = a.lang
 
+lens_id(a::LensApplication) = a.lens_id
 document_id(a::LensApplication) = LensDocumentID(a.jurisdiction, a.doc_number, a.kind, a.date_published)
 reference(a::LensApplication) = LensApplicationReference(document_id(a), lens_id(a))
-
-count_citations(a::LensApplication) = count_citations(a.biblio.references_cited)
-count_patent_citations(a::LensApplication) = count_patent_citations(a.biblio.references_cited)
-count_npl_citations(a::LensApplication) = count_npl_citations(a.biblio.references_cited)
 
 members(::Nothing) = Vector{LensApplicationReference}()
 members(f::LensFamilyReference) = f.members
 family_size(::Nothing) = 0
 family_size(f::LensFamilyReference) = length(f.members)
 
+PatentsBase.sourceid(a::LensApplication)::String = a.lens_id
 PatentsBase.jurisdiction(a::LensApplication)::String = a.jurisdiction
 PatentsBase.doc_number(a::LensApplication)::String = a.doc_number
 PatentsBase.kind(a::LensApplication)::String = a.kind
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
+PatentsBase.claims(a::LensApplication) = reorganize_claims(a.claims)
+PatentsBase.abstract(a::LensApplication) = a.abstract
+PatentsBase.fulltext(a::LensApplication) = a.description
 
 PatentsBase.applicants(a::LensApplication) = applicants(a.biblio.parties)
+PatentsBase.inventors(a::LensApplication) = inventors(a.biblio.parties)
 
 function PatentsBase.refers_to(ref::LensApplicationReference, app::LensApplication)
-    isnothing(lens_id(ref)) ? refers_to(ref.document_id, app) : lens_id(ref) == lens_id(app)
+    isnothing(lens_id(ref)) ? refers_to(ref.document_id, app) : lens_id(ref) == sourceid(app)
 end
 
-PatentsBase.citations(a::LensApplication) = citations(a.biblio.references_cited)
-PatentsBase.citedby(a::LensApplication) = citations(a.biblio.cited_by)
-
-function PatentsBase.patent_citations(a::LensApplication)
-    citations = PatentsBase.citations(a)
-    isnothing(citations) && return LensPatentCitation[]
-    filtered = filter(app -> app isa LensPatentCitation, citations)
+function PatentsBase.citations(a::LensApplication, ::PatentCitation)
+    cits = citations(a.biblio.references_cited)
+    isnothing(cits) && return LensPatentCitation[]
+    filtered = filter(app -> app isa LensPatentCitation, cits)
     Vector{LensPatentCitation}(filtered)
 end
 
-function PatentsBase.npl_citations(a::LensApplication)
-    citations = PatentsBase.citations(a)
-    isnothing(citations) && return LensNPLCitation[]
-    filtered = filter(app -> app isa LensNPLCitation, citations)
+function PatentsBase.citations(a::LensApplication, ::NPLCitation)
+    cits = citations(a.biblio.references_cited)
+    isnothing(cits) && return LensNPLCitation[]
+    filtered = filter(app -> app isa LensNPLCitation, cits)
     Vector{LensNPLCitation}(filtered)
 end
 
-# the interface for citations seems still a bit convoluted
-count_forwardcitations(a::LensApplication) = count_citations(a.biblio.cited_by)
+PatentsBase.forwardcitations(a::LensApplication) = citations(a.biblio.cited_by)
 
 function PatentsBase.classification(::IPC, a::LensApplication)
     classification = a.biblio.classifications_ipcr
-    isnothing(classification) ? [] : all(classification)
+    isnothing(classification) ? [] : gather_all(classification)
 end
 
 function PatentsBase.classification(::CPC, a::LensApplication)
     classification = a.biblio.classifications_cpc
-    isnothing(classification) ? [] : all(classification)
+    isnothing(classification) ? [] : gather_all(classification)
 end
 
 PatentsBase.siblings(a::LensApplication) = members(a.families.simple_family)
