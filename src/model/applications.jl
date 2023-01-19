@@ -43,9 +43,6 @@ StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
 """Return a `String` with the document type of application `a`"""
 publication_type(a::LensApplication)::String = a.publication_type
 
-"""Return the `Date` of publication of application `a`"""
-date_published(a::LensApplication)::Date = a.date_published
-
 """Return a `String` with the full document key of application `a`"""
 doc_key(a::LensApplication)::String = a.doc_key
 
@@ -68,6 +65,7 @@ PatentsBase.sourceid(a::LensApplication)::String = a.lens_id
 PatentsBase.jurisdiction(a::LensApplication)::String = a.jurisdiction
 PatentsBase.doc_number(a::LensApplication)::String = a.doc_number
 PatentsBase.kind(a::LensApplication)::String = a.kind
+PatentsBase.date_published(a::LensApplication)::Date = a.date_published
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
