@@ -1,5 +1,16 @@
-using PatentsLens
+using PatentsBase, PatentsLandscapes, PatentsLens
 using Test
+using SQLite
 
-# [i > length(cites(f)) for (i,f) in zip(indegree(g), fams)] |> any
-# [o > length(citedby(f)) for (o,f) in zip(outdegree(g), fams)] |> any
+function redirect_output(f)
+    redirect_stderr(open("stderr.tmp", "w")) do
+        redirect_stdout(open("stdout.tmp", "w")) do
+            f()
+        end
+    end
+end
+
+@testset verbose=true begin
+    include("testsets/reading.testset.jl")
+    include("testsets/loading.testset.jl")
+end

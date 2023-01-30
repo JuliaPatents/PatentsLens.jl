@@ -90,7 +90,7 @@ gather_all(la::LensAbstract) = la.abstract
 gather_all(c::LensClaims) = reduce(vcat, gather_all.(c.claims))
 
 gather_all_localized(lc::LensClaims) = lc.claims
-gather_all_localized(::Nothing) = []
+gather_all_localized(::Nothing) = Vector{LensLocalizedClaims}()
 
 reorganize_claims(::Nothing) = []
 

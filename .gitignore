@@ -1,3 +1,4 @@
+*.tmp
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
