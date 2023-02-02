@@ -130,12 +130,12 @@
         @test applicants(g_apps[5]) |> length == 2
         @test applicants(g_apps[5]) |> first |> country isa String
         @test applicants(g_apps[5]) |> first |> name isa String
-        @test applicants(g_apps[5]) |> first |> PatentsBase.names isa Vector{String}
+        @test applicants(g_apps[5]) |> first |> known_names isa Vector{String}
 
         @test inventors(g_apps[4]) |> length == 10
         @test inventors(g_apps[4]) |> first |> country isa String
         @test inventors(g_apps[4]) |> first |> name isa String
-        @test inventors(g_apps[4]) |> first |> PatentsBase.names isa Vector{String}
+        @test inventors(g_apps[4]) |> first |> known_names isa Vector{String}
 
     end
 

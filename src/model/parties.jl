@@ -30,7 +30,7 @@ inventors(p::LensParties) = isnothing(p.inventors) ? LensInventor[] : p.inventor
 
 PatentsBase.name(a::LensApplicant) = a.extracted_name.value
 PatentsBase.name(a::LensInventor) = a.extracted_name.value
-PatentsBase.names(a::LensApplicant) = [name(a)]
-PatentsBase.names(a::LensInventor) = [name(a)]
+PatentsBase.known_names(a::LensApplicant) = [name(a)]
+PatentsBase.known_names(a::LensInventor) = [name(a)]
 PatentsBase.country(a::LensApplicant) = a.residence
 PatentsBase.country(a::LensInventor) = a.residence
