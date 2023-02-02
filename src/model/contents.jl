@@ -62,15 +62,15 @@ text(rc::LensRawClaim) = rc.claim_text
 text(::Nothing, lang) = nothing
 function text(t::LensTitle, lang::String)
     index = findfirst(lt -> lt.lang == lang, t.title)
-    isnothing(index) ? nothing : text(t.title[index])
+    isnothing(index) ?  throw(KeyError(lang)) : text(t.title[index])
 end
 function text(a::LensAbstract, lang::String)
     index = findfirst(lt -> lt.lang == lang, a.abstract)
-    isnothing(index) ? nothing : text(a.abstract[index])
+    isnothing(index) ?  throw(KeyError(lang)) : text(a.abstract[index])
 end
 function text(c::LensClaim, lang::String)
     index = findfirst(lt -> lt.lang == lang, c.claim)
-    isnothing(index) ? nothing : text(c.claim[index])
+    isnothing(index) ?  throw(KeyError(lang)) : text(c.claim[index])
 end
 
 lang(::Nothing) = nothing
@@ -120,4 +120,4 @@ PatentsBase.languages(::Nothing) = nothing
 PatentsBase.languages(a::LensAbstract) = lang.(a.abstract)
 PatentsBase.languages(t::LensTitle) = lang.(t.title)
 PatentsBase.languages(c::LensClaim) = lang.(c.claim)
-PatentsBase.languages(t::LensFulltext) = isnothing(t.lang) ? Vector{String}() : t.lang
+PatentsBase.languages(t::LensFulltext) = isnothing(t.lang) ? Vector{String}() : [t.lang]

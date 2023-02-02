@@ -24,3 +24,4 @@ PatentsBase.doc_number(a::LensDocumentID) = a.doc_number
 PatentsBase.doc_number(a::LensApplicationReference) = a.document_id.doc_number
 PatentsBase.kind(a::LensDocumentID) = a.kind
 PatentsBase.kind(a::LensApplicationReference) = a.document_id.kind
+PatentsBase.sourceid(a::LensApplicationReference) = a.lens_id

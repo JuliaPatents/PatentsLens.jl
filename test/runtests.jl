@@ -1,6 +1,7 @@
 using PatentsBase, PatentsLandscapes, PatentsLens
 using Test
 using SQLite
+using DataFrames
 
 function redirect_output(f)
     redirect_stderr(open("stderr.tmp", "w")) do
@@ -13,4 +14,5 @@ end
 @testset verbose=true begin
     include("testsets/reading.testset.jl")
     include("testsets/loading.testset.jl")
+    include("testsets/base-interface.testset.jl")
 end

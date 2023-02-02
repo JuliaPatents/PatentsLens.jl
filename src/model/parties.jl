@@ -25,8 +25,8 @@ struct LensParties # helper type, do not export
 end
 StructTypes.StructType(::Type{LensParties}) = StructTypes.Struct()
 
-applicants(p::LensParties) = p.applicants !== nothing ? p.applicants : []
-inventors(p::LensParties) = p.inventors !== nothing ? p.inventors : []
+applicants(p::LensParties) = isnothing(p.applicants) ? LensApplicant[] : p.applicants
+inventors(p::LensParties) = isnothing(p.inventors) ? LensInventor[] : p.inventors
 
 PatentsBase.name(a::LensApplicant) = a.extracted_name.value
 PatentsBase.name(a::LensInventor) = a.extracted_name.value

@@ -43,12 +43,13 @@ StructTypes.StructType(::Type{LensForwardCitations}) = StructTypes.Struct()
 
 citations(::Nothing) = Vector{Union{LensPatentCitation, LensNPLCitation}}()
 citations(c::LensCitations) = c.citations
-citations(c::LensForwardCitations) = c.patents !== nothing ? c.patents : []
+citations(c::LensForwardCitations) = c.patents !== nothing ? c.patents : LensForwardCitation[]
 
 PatentsBase.phase(pc::LensPatentCitation) = pc.cited_phase
 PatentsBase.phase(lc::LensNPLCitation) = lc.cited_phase
 
 PatentsBase.reference(c::LensPatentCitation) = c.patcit
+PatentsBase.reference(c::LensForwardCitation) = c.ref
 
 PatentsBase.bibentry(lc::LensNPLCitation) = lc.nplcit.text
 PatentsBase.external_ids(lc::LensNPLCitation) =

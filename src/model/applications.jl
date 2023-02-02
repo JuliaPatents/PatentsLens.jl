@@ -94,16 +94,19 @@ function PatentsBase.citations(a::LensApplication, ::NPLCitation)
     Vector{LensNPLCitation}(filtered)
 end
 
-PatentsBase.forwardcitations(a::LensApplication) = citations(a.biblio.cited_by)
+function PatentsBase.forwardcitations(a::LensApplication)
+    cits = citations(a.biblio.cited_by)
+    isnothing(cits) || isempty(cits) ? LensForwardCitation[] : cits
+end
 
 function PatentsBase.classification(::IPC, a::LensApplication)
     classification = a.biblio.classifications_ipcr
-    isnothing(classification) ? [] : gather_all(classification)
+    isnothing(classification) ? IPCSymbol[] : gather_all(classification)
 end
 
 function PatentsBase.classification(::CPC, a::LensApplication)
     classification = a.biblio.classifications_cpc
-    isnothing(classification) ? [] : gather_all(classification)
+    isnothing(classification) ? CPCSymbol[] : gather_all(classification)
 end
 
 PatentsBase.siblings(a::LensApplication) = members(a.families.simple_family)

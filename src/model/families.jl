@@ -16,6 +16,7 @@ function PatentsBase.aggregate_families(apps::Vector{LensApplication})
         applications = LensApplication[]
         push!(applications, a)
         for s in siblings(a)
+            sourceid(s) == sourceid(a) && continue
             haskey(idx, document_id(s)) || continue
             push!(applications, apps[idx[document_id(s)]])
             visited[document_id(s)] = true
