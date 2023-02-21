@@ -1,4 +1,4 @@
-@testset verbose=true "PatentsBase interface, application level" begin
+@testset verbose=true "PatentsBase interface" begin
 
     @testset "Document and Source IDs" begin
 
@@ -18,6 +18,25 @@
         @test g_app_min   |> id == "CN102206141A"
         @test g_apps[10]  |> sourceid == "092-160-904-512-835"
         @test g_app_min   |> sourceid == "038-066-141-127-891"
+
+    end
+
+    @testset "Simple families" begin
+
+        global g_fams = aggregate_families(g_apps)
+
+        @test g_fams isa Vector{<:AbstractFamily}
+        @test length(g_fams) == 129
+
+        @test applications.(g_fams) isa Vector{<:Vector{<:AbstractApplication}}
+
+        fam1 = applications(g_fams[1])
+        @test length(fam1) == 2
+        @test siblings(fam1[1]) isa Vector{<:AbstractApplicationReference}
+        @test length(siblings(fam1[1])) == 3
+        @test length(siblings(fam1[2])) == 3
+        @test length(filter(ref -> refers_to(ref, fam1[2]), siblings(fam1[1]))) == 1
+        @test length(filter(ref -> refers_to(ref, fam1[1]), siblings(fam1[2]))) == 1
 
     end
 
@@ -94,10 +113,16 @@
         @test (a -> citations(a, NPLCitation())).(g_apps) isa Vector{<:Vector{<:AbstractNPLCitation}}
         @test forwardcitations.(g_apps) isa Vector{<:Vector{<:AbstractPatentCitation}}
 
+        @test citations.(g_fams) isa Vector{<:Vector{<:AbstractPatentCitation}}
+        @test (f -> citations(f, NPLCitation())).(g_fams) isa Vector{<:Vector{<:AbstractNPLCitation}}
+        @test forwardcitations.(g_fams) isa Vector{<:Vector{<:AbstractPatentCitation}}
+
         @test citations(g_apps[3]) |> length == 36
         @test citations(g_apps[3]) |> first |> phase isa String
         @test citations(g_apps[3]) |> first |> reference isa AbstractApplicationReference
         @test citations(g_apps[3]) |> first |> reference |> sourceid isa String
+
+        @test citations(g_fams[3]) |> length == 55
 
         @test citations(g_apps[3], NPLCitation()) |> length == 6
         @test citations(g_apps[3], NPLCitation()) |> first |> phase isa String
@@ -109,11 +134,14 @@
         @test citations(g_apps[11], NPLCitation()) |> first |> external_ids |> length == 3
         @test citations(g_apps[11], NPLCitation()) |> first |> doi isa String
 
+        @test citations(g_fams[1], NPLCitation()) |> length == 8
+
         @test forwardcitations(g_apps[2]) |> length == 2
         @test_throws ArgumentError forwardcitations(g_apps[2]) |> first |> phase
         @test forwardcitations(g_apps[2]) |> first |> reference isa AbstractApplicationReference
         @test forwardcitations(g_apps[2]) |> first |> reference |> sourceid isa String
 
+        @test forwardcitations(g_fams[8]) |> length == 3
     end
 
     @testset "Parties" begin
@@ -127,15 +155,22 @@
         @test applicants.(g_apps) isa Vector{<:Vector{<:AbstractApplicant}}
         @test inventors.(g_apps) isa Vector{<:Vector{<:AbstractInventor}}
 
+        @test applicants.(g_fams) isa Vector{<:Vector{<:AbstractApplicant}}
+        @test inventors.(g_fams) isa Vector{<:Vector{<:AbstractInventor}}
+
         @test applicants(g_apps[5]) |> length == 2
         @test applicants(g_apps[5]) |> first |> country isa String
         @test applicants(g_apps[5]) |> first |> name isa String
         @test applicants(g_apps[5]) |> first |> known_names isa Vector{String}
 
+        @test applicants(g_fams[1]) |> length == 1
+
         @test inventors(g_apps[4]) |> length == 10
         @test inventors(g_apps[4]) |> first |> country isa String
         @test inventors(g_apps[4]) |> first |> name isa String
         @test inventors(g_apps[4]) |> first |> known_names isa Vector{String}
+
+        @test inventors(g_fams[1]) |> length == 1
 
     end
 
@@ -150,15 +185,49 @@
         @test classification.(g_apps) isa Vector{Vector{CPCSymbol}}
         @test (a -> classification(IPC(), a)).(g_apps) isa Vector{Vector{IPCSymbol}}
 
+        @test classification.(g_fams) isa Vector{Vector{CPCSymbol}}
+        @test (a -> classification(IPC(), a)).(g_fams) isa Vector{Vector{IPCSymbol}}
+
         @test classification(g_apps[1]) |> length == 10
         @test classification(g_apps[1])[1] |> symbol isa String
         @test symbol(Subclass(), classification(g_apps[1])[1]) isa String
         @test_broken title(Subclass(), classification(g_apps[1])[1]) isa String # NYI
 
+        @test classification(g_fams[1]) |> length == 5
+
         @test classification(IPC(), g_apps[1]) |> length == 4
         @test classification(IPC(), g_apps[1])[1] |> symbol isa String
         @test symbol(Subclass(), classification(IPC(), g_apps[1])[1]) isa String
         @test_broken title(Subclass(), classification(IPC(), g_apps[1])[1]) isa String # NYI
+
+        @test classification(IPC(), g_fams[1]) |> length == 7
+
+    end
+
+    @testset "Portfolios" begin
+
+        pf1a = portfolio("COCA COLA CO", g_apps)
+        pf1f = portfolio("COCA COLA CO", g_fams)
+
+        @test pf1a isa LensPortfolio
+        @test pf1f isa LensPortfolio
+
+        @test applications(pf1a) isa Vector{<:AbstractApplication}
+        @test applications(pf1f) isa Vector{<:AbstractApplication}
+        @test length(applications(pf1a)) == 6
+        @test length(applications(pf1f)) == 6
+
+        @test families(pf1a) isa Vector{<:AbstractFamily}
+        @test families(pf1f) isa Vector{<:AbstractFamily}
+        @test length(families(pf1a)) == 5
+        @test length(families(pf1f)) == 5
+
+        pf2 = portfolio(inventors(applications(pf1a)[1])[1], g_apps)
+
+        @test pf2 isa LensPortfolio
+
+        @test length(applications(pf2)) == 1
+        @test length(families(pf2)) == 1
 
     end
 
