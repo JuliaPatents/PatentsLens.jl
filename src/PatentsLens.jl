@@ -15,7 +15,7 @@ export LensTitle, LensAbstract, LensClaim, LensFulltext
 # Citations
 export LensNPLCitation, LensPatentCitation, LensForwardCitation
 # Parties
-export LensApplicant, LensInventor
+export LensApplicant, LensInventor, LensPortfolio
 # Documents
 export LensApplication, LensApplicationReference
 # Families
@@ -33,6 +33,7 @@ include("model/citations.jl")
 include("model/classifications.jl")
 include("model/applications.jl")
 include("model/families.jl")
+include("model/portfolios.jl")
 
 include("sqlite/schema.jl")
 include("sqlite/lensdb.jl")
