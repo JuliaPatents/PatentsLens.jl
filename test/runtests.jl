@@ -15,4 +15,6 @@ end
     include("testsets/reading.testset.jl")
     include("testsets/loading.testset.jl")
     include("testsets/base-interface.testset.jl")
+    include("testsets/base-interface-sqlite.testset.jl")
+    include("testsets/filters.testset.jl")
 end

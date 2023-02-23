@@ -250,7 +250,7 @@ end
 # Central retrieval function, this is where it all comes together.
 # Selects table subsets based on a LensFilter and reads them into memory as data frames with associated search indices.
 # Then iterates over the applications table, pulling in data from the other tables using the indices.
-function retrieve_applications_(db::LensDB, ignore_fulltext::Bool = false)
+function retrieve_applications(db::LensDB, ignore_fulltext::Bool = false)
 
     df_apps = bulk_select_applications(db)
     df_titles = bulk_select_content(db, "titles")
@@ -353,36 +353,47 @@ function PatentsBase.applications(ds::LensDB, filter::AbstractFilter = AllFilter
     ignore_fulltext::Bool = false)::Vector{LensApplication}
 
     apply_application_filter!(ds, filter)
-    retrieve_applications_(ds, ignore_fulltext)
+    retrieve_applications(ds, ignore_fulltext)
 end
 
 function PatentsBase.families(ds::LensDB, filter::AbstractFilter = AllFilter();
     ignore_fulltext::Bool = false)::Vector{LensFamily}
 
     apply_family_filter!(ds, filter)
-    retrieve_applications_(ds, ignore_fulltext) |> aggregate_families
+    retrieve_applications(ds, ignore_fulltext) |> aggregate_families
 end
 
 function PatentsBase.find_application(ref::AbstractApplicationID, ds::LensDB)
-    clear_filter!(ds)
-    DBInterface.execute(ds, """
+    DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(ds.db, """
         CREATE TABLE application_filter AS
             SELECT DISTINCT lens_id FROM applications
-            WHERE jurisdiction = '$(jurisdiction(ref))'
-            AND doc_number = '$(doc_number(ref));
+            WHERE jurisdiction = "$(jurisdiction(ref))"
+            AND doc_number = "$(doc_number(ref))";
+    """)
+    res = retrieve_applications(ds)
+    isempty(res) ? nothing : res[1]
+end
+
+function PatentsBase.find_application(ref::LensApplicationReference, ds::LensDB)
+    DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(ds.db, """
+        CREATE TABLE application_filter AS
+            SELECT DISTINCT lens_id FROM applications
+            WHERE lens_id = "$(sourceid(ref))"
     """)
     res = retrieve_applications(ds)
     isempty(res) ? nothing : res[1]
 end
 
 function PatentsBase.siblings(a::LensApplication, ds::LensDB)
-    clear_filter!(ds)
-    DBInterface.execute(ds, """
+    DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
+    DBInterface.execute(ds.db, """
         CREATE TABLE application_filter AS
             SELECT DISTINCT lens_id FROM family_memberships
             WHERE family_id IN (
                 SELECT family_id FROM family_memberships
-                WHERE lens_id = '$(lens_id(a))'
+                WHERE lens_id = "$(lens_id(a))"
             );
     """)
     retrieve_applications(ds)
