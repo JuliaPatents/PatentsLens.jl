@@ -229,6 +229,16 @@
         @test length(applications(pf2)) == 1
         @test length(families(pf2)) == 1
 
+        pf3a = portfolio("This applicant does not exist", g_apps)
+        pf3f = portfolio("This applicant does not exist", g_fams)
+
+        @test pf3a isa LensPortfolio
+        @test pf3f isa LensPortfolio
+        @test applications(pf3a) isa Vector{<:AbstractApplication}
+        @test applications(pf3f) isa Vector{<:AbstractApplication}
+        @test length(applications(pf3a)) == 0
+        @test length(applications(pf3f)) == 0
+
     end
 
 end

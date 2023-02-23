@@ -9,14 +9,20 @@ StructTypes.StructType(::Type{LensPortfolio}) = StructTypes.Struct()
 function PatentsBase.portfolio(owner::LensApplicant, applications::Vector{LensApplication})
     LensPortfolio(
         owner,
-        filter(app -> name(owner) in reduce(vcat, known_names.(PatentsBase.applicants(app)), init = []), applications),
+        filter(
+            app -> name(owner) in
+                reduce(vcat, known_names.(PatentsBase.applicants(app)), init = String[]),
+            applications),
         nothing)
 end
 
 function PatentsBase.portfolio(owner::AbstractInventor, applications::Vector{LensApplication})
     LensPortfolio(
         owner,
-        filter(app -> name(owner) in reduce(vcat, known_names.(PatentsBase.inventors(app)), init = []), applications),
+        filter(
+            app -> name(owner) in
+                reduce(vcat, known_names.(PatentsBase.inventors(app)), init = String[]),
+            applications),
         nothing)
 end
 
@@ -24,14 +30,20 @@ function PatentsBase.portfolio(owner::AbstractApplicant, families::Vector{LensFa
     LensPortfolio(
         owner,
         nothing,
-        filter(fam -> name(owner) in reduce(vcat, known_names.(PatentsBase.applicants(fam)), init = []), families))
+        filter(
+            fam -> name(owner) in
+                reduce(vcat, known_names.(PatentsBase.applicants(fam)), init = String[]),
+            families))
 end
 
 function PatentsBase.portfolio(owner::AbstractInventor, families::Vector{LensFamily})
     LensPortfolio(
         owner,
         nothing,
-        filter(fam -> name(owner) in reduce(vcat, known_names.(PatentsBase.inventors(fam)), init = []), families))
+        filter(
+            fam -> name(owner) in
+                reduce(vcat, known_names.(PatentsBase.inventors(fam)), init = String[]),
+            families))
 end
 
 function PatentsBase.portfolio(owner::String, applications::Vector{LensApplication})
@@ -44,7 +56,8 @@ end
 
 function PatentsBase.applications(p::LensPortfolio)::Vector{LensApplication}
     isnothing(p.applications) || return p.applications
-    isnothing(p.families) || return reduce(vcat, applications.(p.families))
+    isnothing(p.families) ||
+        return reduce(vcat, applications.(p.families), init = LensApplication[])
     return LensApplication[]
 end
 
