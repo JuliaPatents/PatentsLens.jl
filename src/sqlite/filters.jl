@@ -79,13 +79,13 @@ function query_select_applications(filter::ContentFilter)
     if (isempty(filter.languages))
         """
         SELECT DISTINCT lens_id FROM $(db_key(filter.field))
-        WHERE text MATCH "$(filter.search_query)"
+        WHERE text MATCH '$(filter.search_query)'
         """
     else
         langs = join(map(l -> '"' * l * '"', filter.languages), ",")
         """
         SELECT DISTINCT lens_id FROM $(db_key(filter.field))
-        WHERE text MATCH "$(filter.search_query)"
+        WHERE text MATCH '$(filter.search_query)'
         AND lang IN ($langs)
         """
     end
@@ -97,7 +97,7 @@ function query_select_families(filter::ContentFilter)
         SELECT DISTINCT family_id
         FROM $(db_key(filter.field)) INNER JOIN family_memberships
         ON $(db_key(filter.field)).lens_id = family_memberships.lens_id
-        WHERE text MATCH "$(filter.search_query)"
+        WHERE text MATCH '$(filter.search_query)'
         """
     else
         langs = join(map(l -> '"' * l * '"', filter.languages), ",")
@@ -105,7 +105,7 @@ function query_select_families(filter::ContentFilter)
         SELECT DISTINCT family_id
         FROM $(db_key(filter.field)) INNER JOIN family_memberships
         ON $(db_key(filter.field)).lens_id = family_memberships.lens_id
-        WHERE text MATCH "$(filter.search_query)"
+        WHERE text MATCH '$(filter.search_query)'
         AND lang IN ($langs)
         """
     end

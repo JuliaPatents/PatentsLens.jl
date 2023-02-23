@@ -17,4 +17,5 @@ end
     include("testsets/base-interface.testset.jl")
     include("testsets/base-interface-sqlite.testset.jl")
     include("testsets/filters.testset.jl")
+    include("testsets/taxonomies.testset.jl")
 end
