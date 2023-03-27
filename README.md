@@ -1,4 +1,5 @@
 # PatentsLens.jl
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliapatents.github.io/PatentsLens.jl/dev/)
 
 *Julia package for handling Lens.org patent data.*
 
