@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Versions · PatentsBase.jl</title>
+  </head>
+  <body>
+    <h3>Documentation Versions</h3>
+    <ul id="version_nav">
+    </ul>
+    <script src="versions.js"></script>
+    <script>
+      for (const version of DOC_VERSIONS) {
+        document.getElementById("version_nav").innerHTML += `<li><a href="${version}/index.html">${version}</a></li>`;
+      }
+    </script>
+  </body>
+</html>
