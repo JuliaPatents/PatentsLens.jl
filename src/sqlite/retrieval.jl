@@ -365,36 +365,45 @@ end
 
 function PatentsBase.find_application(ref::AbstractApplicationID, ds::LensDB)
     DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
-    DBInterface.execute(ds.db, """
+    DBInterface.execute(
+        ds.db,
+        """
         CREATE TABLE application_filter AS
             SELECT DISTINCT lens_id FROM applications
-            WHERE jurisdiction = "$(jurisdiction(ref))"
-            AND doc_number = "$(doc_number(ref))";
-    """)
+            WHERE jurisdiction = ?
+            AND doc_number = ?;
+        """,
+        [jurisdiction(ref), doc_number(ref)])
     res = retrieve_applications(ds)
     isempty(res) ? nothing : res[1]
 end
 
 function PatentsBase.find_application(ref::LensApplicationReference, ds::LensDB)
     DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
-    DBInterface.execute(ds.db, """
+    DBInterface.execute(
+        ds.db,
+        """
         CREATE TABLE application_filter AS
             SELECT DISTINCT lens_id FROM applications
-            WHERE lens_id = "$(sourceid(ref))"
-    """)
+            WHERE lens_id = ?
+        """,
+        [sourceid(ref)])
     res = retrieve_applications(ds)
     isempty(res) ? nothing : res[1]
 end
 
 function PatentsBase.siblings(a::LensApplication, ds::LensDB)
     DBInterface.execute(ds.db, "DROP TABLE IF EXISTS application_filter;")
-    DBInterface.execute(ds.db, """
+    DBInterface.execute(
+        ds.db,
+        """
         CREATE TABLE application_filter AS
             SELECT DISTINCT lens_id FROM family_memberships
             WHERE family_id IN (
                 SELECT family_id FROM family_memberships
-                WHERE lens_id = "$(lens_id(a))"
+                WHERE lens_id = ?
             );
-    """)
+        """,
+        [lens_id(a)])
     retrieve_applications(ds)
 end

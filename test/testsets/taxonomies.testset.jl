@@ -63,7 +63,6 @@
     @testset "Taxonomic filters" begin
         apps_poly1 = prepdata(g_db, Frequency(), ApplicationLevel(), Taxonomy("polymers1"))
         for row in eachrow(apps_poly1)
-            println(row.polymers1)
             res = prepdata(g_db, Frequency(), ApplicationLevel(), TaxonomicFilter("polymers1", [row.polymers1]))
             @test res[1, 1] == row.applications
         end
