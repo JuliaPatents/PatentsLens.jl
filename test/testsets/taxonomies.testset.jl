@@ -45,4 +45,43 @@
         end
     end
 
+    @testset "Taxonomic groupings" begin
+        apps_poly1 = prepdata(g_db, Frequency(), ApplicationLevel(), Taxonomy("polymers1"))
+        @test isa(apps_poly1, DataFrame)
+        @test nrow(apps_poly1) == 8
+        fams_poly1 = prepdata(g_db, Frequency(), FamilyLevel(), Taxonomy("polymers1"))
+        @test isa(fams_poly1, DataFrame)
+        @test nrow(fams_poly1) == 8
+        apps_poly2 = prepdata(g_db, Frequency(), ApplicationLevel(), Taxonomy("polymers2"))
+        @test isa(apps_poly2, DataFrame)
+        @test nrow(apps_poly2) == 14
+        fams_poly2 = prepdata(g_db, Frequency(), FamilyLevel(), Taxonomy("polymers2"))
+        @test isa(fams_poly2, DataFrame)
+        @test nrow(fams_poly2) == 14
+    end
+
+    @testset "Taxonomic filters" begin
+        apps_poly1 = prepdata(g_db, Frequency(), ApplicationLevel(), Taxonomy("polymers1"))
+        for row in eachrow(apps_poly1)
+            println(row.polymers1)
+            res = prepdata(g_db, Frequency(), ApplicationLevel(), TaxonomicFilter("polymers1", [row.polymers1]))
+            @test res[1, 1] == row.applications
+        end
+        fams_poly1 = prepdata(g_db, Frequency(), FamilyLevel(), Taxonomy("polymers1"))
+        for row in eachrow(fams_poly1)
+            res = prepdata(g_db, Frequency(), FamilyLevel(), TaxonomicFilter("polymers1", [row.polymers1]))
+            @test res[1, 1] == row.families
+        end
+        apps_poly2 = prepdata(g_db, Frequency(), ApplicationLevel(), Taxonomy("polymers2"))
+        for row in eachrow(apps_poly2)
+            res = prepdata(g_db, Frequency(), ApplicationLevel(), TaxonomicFilter("polymers2", [row.polymers2]))
+            @test res[1, 1] == row.applications
+        end
+        fams_poly2 = prepdata(g_db, Frequency(), FamilyLevel(), Taxonomy("polymers2"))
+        for row in eachrow(fams_poly2)
+            res = prepdata(g_db, Frequency(), FamilyLevel(), TaxonomicFilter("polymers2", [row.polymers2]))
+            @test res[1, 1] == row.families
+        end
+    end
+
 end
