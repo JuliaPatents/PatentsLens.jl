@@ -35,14 +35,16 @@ function create_grouping(db::LensDB, dim::Int, ::ApplicationLevel, j::Jurisdicti
     if isempty(j.jurisdictions)
         cond = ""
     else
-        jds = join(map(j -> "'$j'", j.jurisdictions), ",")
-        cond = "WHERE jurisdiction IN ($jds)"
+        cond = "WHERE jurisdiction IN $(list_placeholder(length(j.jurisdictions)))"
     end
-    DBInterface.execute(db.db, """
-        CREATE TEMP TABLE grouping$dim AS
-        SELECT DISTINCT lens_id, jurisdiction FROM applications
-        $cond;
-    """)
+    DBInterface.execute(
+        db.db,
+        """
+            CREATE TEMP TABLE grouping$dim AS
+            SELECT DISTINCT lens_id, jurisdiction FROM applications
+            $cond;
+        """,
+        j.jurisdictions)
 end
 
 function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, j::Jurisdictions)
@@ -50,15 +52,17 @@ function create_grouping(db::LensDB, dim::Int, ::FamilyLevel, j::Jurisdictions)
     if isempty(j.jurisdictions)
         cond = ""
     else
-        jds = join(map(j -> "'$j'", j.jurisdictions), ",")
-        cond = "WHERE jurisdiction IN ($jds)"
+        cond = "WHERE jurisdiction IN $(list_placeholder(length(j.jurisdictions)))"
     end
-    DBInterface.execute(db.db, """
-        CREATE TEMP TABLE grouping$dim AS
-        SELECT DISTINCT family_id, jurisdiction FROM applications
-        INNER JOIN family_memberships ON applications.lens_id = family_memberships.lens_id
-        $cond;
-    """)
+    DBInterface.execute(
+        db.db,
+        """
+            CREATE TEMP TABLE grouping$dim AS
+            SELECT DISTINCT family_id, jurisdiction FROM applications
+            INNER JOIN family_memberships ON applications.lens_id = family_memberships.lens_id
+            $cond;
+        """,
+        j.jurisdictions)
 end
 
 grouping_column(t::Taxonomy) = t.name
