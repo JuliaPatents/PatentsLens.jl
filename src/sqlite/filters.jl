@@ -1,14 +1,3 @@
-"Struct representing a query with placeholders along with the parameters to bind to those placeholders"
-struct UnboundQuery
-    text::String
-    params::Vector{String}
-end
-
-"Generate a placeholder for a list of `n` elements in an SQLite query"
-function list_placeholder(n::Int)::String
-    "(" * join(repeat(["?"], n), ",") * ")"
-end
-
 "Generate an SQLite query to select the Lens IDs of all applications matching `f`."
 function query_select_applications(f::AbstractFilter)::UnboundQuery end
 

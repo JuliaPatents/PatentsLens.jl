@@ -1,4 +1,9 @@
 
+validate_grouping(::Applicants) = true
+validate_grouping(::TimeTrend) = true
+validate_grouping(j::Jurisdictions) = all(validate_inj.(j.jurisdictions))
+validate_grouping(t::Taxonomy) = validate_inj(t.name) && all(validate_inj.(t.included_taxa))
+
 grouping_column(::Applicants) = "applicant_id"
 summary_columns(::Applicants) = "applicant_id, country, name"
 
@@ -175,18 +180,22 @@ function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::Ab
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     tally(db, l, [g1]) |> DataFrame
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     tally(db, l, [g1]) |> DataFrame
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping, g2::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
+    validate_grouping(g2) || throw(ArgumentError("Illegal character used in grouping: $g2"))
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
@@ -194,6 +203,8 @@ function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::G
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping, g2::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
+    validate_grouping(g2) || throw(ArgumentError("Illegal character used in grouping: $g2"))
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
@@ -201,6 +212,9 @@ function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::Ab
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::Grouping, g2::Grouping, g3::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
+    validate_grouping(g2) || throw(ArgumentError("Illegal character used in grouping: $g2"))
+    validate_grouping(g3) || throw(ArgumentError("Illegal character used in grouping: $g3"))
     clear_filter!(db)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)
@@ -209,6 +223,9 @@ function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, g1::G
 end
 
 function PatentsLandscapes.prepdata(db::LensDB, ::Frequency, l::DataLevel, f::AbstractFilter, g1::Grouping, g2::Grouping, g3::Grouping)
+    validate_grouping(g1) || throw(ArgumentError("Illegal character used in grouping: $g1"))
+    validate_grouping(g2) || throw(ArgumentError("Illegal character used in grouping: $g2"))
+    validate_grouping(g3) || throw(ArgumentError("Illegal character used in grouping: $g3"))
     apply_filter!(db, l, f)
     create_grouping(db, 1, l, g1)
     create_grouping(db, 2, l, g2)

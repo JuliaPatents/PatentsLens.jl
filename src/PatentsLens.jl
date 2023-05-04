@@ -37,6 +37,7 @@ include("model/applications.jl")
 include("model/families.jl")
 include("model/portfolios.jl")
 
+include("sqlite/helpers.jl")
 include("sqlite/schema.jl")
 include("sqlite/lensdb.jl")
 include("sqlite/storage.jl")
