@@ -15,6 +15,7 @@ struct LensDB <: AbstractDataSource
         """) |> DataFrame
         set_pragmas!(db)
         nrow(meta) == 0 && initdb!(db)
+        SQLite.@register db SQLite.regexp
         new(db)
     end
     LensDB(file::String) = SQLite.DB(file) |> LensDB

@@ -23,6 +23,9 @@ export LensFamily
 # Data Sources
 export LensDB
 
+# Function exports
+export merge_applicants!
+
 include("docs/templates.jl") # this always needs to be included before anything else!
 
 include("model/contents.jl")
@@ -39,6 +42,7 @@ include("sqlite/lensdb.jl")
 include("sqlite/storage.jl")
 include("sqlite/filters.jl")
 include("sqlite/retrieval.jl")
+include("sqlite/applicants.jl")
 
 include("io/output.jl")
 include("io/reading.jl")
