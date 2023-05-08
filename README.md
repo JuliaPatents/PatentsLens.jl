@@ -97,5 +97,5 @@ Subsets of the data can be created and accessed using PatentsBase's Filter API:
 
 ```julia
 # Retrieve all patent families from the database that mention polylactic acid in their abstract
-pla_fams = families(db, ContentFilter("polylactic OR PLA", AbstractSearch))
+pla_fams = families(db, ContentFilter("polylactic OR PLA", AbstractSearch()))
 ```
