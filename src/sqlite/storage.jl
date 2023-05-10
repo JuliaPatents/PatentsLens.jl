@@ -116,6 +116,7 @@ function bulk_insert_applicants!(db, lens_ids, applicants)
     df.country = PatentsBase.country.(df.applicant)
     df.id .= nothing
     replace!(df.country, nothing => "??")
+    replace!(df.applicant, nothing => "")
     SQLite.load!(select(df, :id, :country, :name), db, "applicants", on_conflict = "IGNORE")
     applicants = DBInterface.execute(db, "SELECT * FROM applicants;") |> DataFrame
     applicant_ids = Dict()
@@ -132,6 +133,7 @@ function bulk_insert_inventors!(db, lens_ids, inventors)
     df.country = PatentsBase.country.(df.inventor)
     df.id .= nothing
     replace!(df.country, nothing => "??")
+    replace!(df.inventor, nothing => "")
     SQLite.load!(select(df, :id, :country, :name), db, "inventors", on_conflict = "IGNORE")
     inventors = DBInterface.execute(db, "SELECT * FROM inventors;") |> DataFrame
     inventor_ids = Dict()
