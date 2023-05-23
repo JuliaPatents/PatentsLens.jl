@@ -1,7 +1,7 @@
 name = "PatentsLens"
 uuid = "f4645b53-4539-42ef-9ea4-c70e89c10300"
 authors = ["Jakob Hoffmann <jfb-hoffmann@hotmail.de>, Alex Seitz <alex.seitz1@gmx.net>"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"

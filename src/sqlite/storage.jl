@@ -19,7 +19,7 @@ function bulk_insert_apps!(db::SQLite.DB, apps::Vector{LensApplication})
         doc_key = doc_key.(apps),
         docdb_id = docdb_id.(apps),
         lang = language.(apps))
-    SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "REPLACE")
+    SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "IGNORE")
     bulk_insert_npl_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, NPLCitation()), apps))
     bulk_insert_patent_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, PatentCitation()), apps))
     bulk_insert_classifications!(db, lens_ids,
@@ -42,7 +42,7 @@ function bulk_insert_npl_citations!(db, lens_ids, npl_citations)
     df.lens_id = map(cit -> cit.nplcit.lens_id, df.npl_citations)
     df.text = map(cit -> cit.nplcit.text, df.npl_citations)
     df.ext_ids = PatentsBase.external_ids.(df.npl_citations)
-    SQLite.load!(select(df, Not([:npl_citations, :ext_ids])), db, "npl_citations")
+    SQLite.load!(select(df, Not([:npl_citations, :ext_ids])), db, "npl_citations", on_conflict = "IGNORE")
     bulk_insert_npl_citations_external_ids!(db, df)
 end
 

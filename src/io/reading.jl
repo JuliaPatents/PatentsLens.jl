@@ -69,8 +69,8 @@ function load_jsonl!(db::LensDB, path::String;
         apps = LensApplication[]
         line = 1
         chunk = 1
-        println("Processing chunk #$chunk (app #1 - #$chunk_size)")
         while !eof(f)
+            mod(line, chunk_size) == 1 && println("Processing chunk $chunk (lines $line - $(chunk * chunk_size))")
             try
                 app_raw = readline(f)
                 app = JSON3.read(app_raw, LensApplication)
@@ -88,7 +88,6 @@ function load_jsonl!(db::LensDB, path::String;
                 bulk_insert_apps!(db.db, apps)
                 apps = LensApplication[]
                 chunk = chunk + 1
-                println("Processing chunk #$chunk (app #$(1 + (chunk - 1) * chunk_size) - #$(chunk * chunk_size))")
             end
             line = line + 1
         end
@@ -96,6 +95,5 @@ function load_jsonl!(db::LensDB, path::String;
             bulk_insert_apps!(db.db, apps)
         end
     end
-    # aggregate_family_citations!(db.db)
     rebuild_index && build_index!(db.db)
 end
