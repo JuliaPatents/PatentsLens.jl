@@ -18,4 +18,5 @@ end
     include("testsets/base-interface-sqlite.testset.jl")
     include("testsets/filters.testset.jl")
     include("testsets/taxonomies.testset.jl")
+    rm("testdb.tmp")
 end

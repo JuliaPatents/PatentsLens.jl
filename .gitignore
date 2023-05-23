@@ -8,5 +8,7 @@
 /data
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 queries.sql
 Manifest.toml

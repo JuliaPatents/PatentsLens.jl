@@ -1,28 +1,38 @@
 """
-    LensDB(db::SQLite.DB)
-    LensDB(file::String)
+    LensDB([file::String])
 
 Wrapper around an SQLite database containing PatentsLens data.
 
 The constructor will create a new database if one does not exist at the specified location.
 It will also initialize the database with the correct schema if necessary.
 """
-struct LensDB <: AbstractDataSource
-    db::SQLite.DB
-    function LensDB(db::SQLite.DB)
-        meta = DBInterface.execute(db, """
-            SELECT * FROM sqlite_schema WHERE name = "lens_db_meta";
-        """) |> DataFrame
-        set_pragmas!(db)
-        nrow(meta) == 0 && initdb!(db)
-        SQLite.@register db SQLite.regexp
-        new(db)
-    end
-    LensDB(file::String) = SQLite.DB(file) |> LensDB
+mutable struct LensDB <: AbstractDataSource
+    file::String
 end
 
-""" Return the `SQLite.DB` wrapped by `ldb`. """
-db(ldb::LensDB) = ldb.db
+""" Return a live connection to the `SQLite.DB` wrapped by `db`. """
+function get_connection(db::LensDB, wal::Bool = false)
+    cn = SQLite.DB(db.file)
+    mode = wal ? "WAL" : "DELETE"
+    DBInterface.execute(cn, "PRAGMA journal_mode = $mode;")
+    set_pragmas!(cn)
+    SQLite.@register cn SQLite.regexp
+    meta = DBInterface.execute(cn, """
+        SELECT * FROM sqlite_schema WHERE name = "lens_db_meta";
+    """) |> DataFrame
+    nrow(meta) == 0 && initdb!(cn)
+    nrow(meta) == 0 && build_index!(cn)
+    cn
+end
+
+function get_connection(f::Function, args...)
+    cn = get_connection(args...)
+    try
+        f(cn)
+    finally
+        close(cn)
+    end
+end
 
 """ Set the required pragmas on the database connection `db`. """
 function set_pragmas!(db::SQLite.DB)
@@ -51,5 +61,4 @@ function initdb!(db::SQLite.DB)
     for query in PATENTSLENS_QUERIES_INIT_SCHEMA
         DBInterface.execute(db, query)
     end
-    build_index!(db::SQLite.DB)
 end

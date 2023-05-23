@@ -24,7 +24,7 @@ export LensFamily
 export LensDB
 
 # Function exports
-export merge_applicants!
+export get_connection, merge_applicants!
 
 include("docs/templates.jl") # this always needs to be included before anything else!
 
@@ -50,5 +50,7 @@ include("io/reading.jl")
 
 include("landscapes/taxonomies.jl")
 include("landscapes/analyses.jl")
+
+include("tuning.jl")
 
 end

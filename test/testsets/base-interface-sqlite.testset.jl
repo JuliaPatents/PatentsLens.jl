@@ -28,7 +28,7 @@
 
     @testset "Bulk document retrieval" begin
 
-        global empty_db = LensDB(SQLite.DB())
+        global empty_db = LensDB()
 
         apps1 = applications(empty_db)
         @test apps1 isa Vector{LensApplication}

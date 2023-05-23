@@ -4,34 +4,50 @@ date_to_text(date::Date) = Dates.format(date, "yyyy-mm-dd")
 date_to_text(::Nothing) = nothing
 
 """
-Insert the applications listed in `apps` into the database `db`, replacing existing data on
-conflict, but preserving and extending party, family and citation relation graphs.
+Insert the applications listed in `apps` into the database `db`, preserving and extending party, family and citation relation graphs.
 """
 function bulk_insert_apps!(db::SQLite.DB, apps::Vector{LensApplication})
-    lens_ids = lens_id.(apps)
-    df = DataFrame(
-        lens_id = lens_ids,
-        publication_type = publication_type.(apps),
-        jurisdiction = jurisdiction.(apps),
-        doc_number  = doc_number.(apps),
-        kind = kind.(apps),
-        date_published = date_to_text.(date_published.(apps)),
-        doc_key = doc_key.(apps),
-        docdb_id = docdb_id.(apps),
-        lang = language.(apps))
-    SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "REPLACE")
-    bulk_insert_npl_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, NPLCitation()), apps))
-    bulk_insert_patent_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, PatentCitation()), apps))
-    bulk_insert_classifications!(db, lens_ids,
+    t_derivedf = @timed begin
+        lens_ids = lens_id.(apps)
+        df = DataFrame(
+            lens_id = lens_ids,
+            publication_type = publication_type.(apps),
+            jurisdiction = jurisdiction.(apps),
+            doc_number  = doc_number.(apps),
+            kind = kind.(apps),
+            date_published = date_to_text.(date_published.(apps)),
+            doc_key = doc_key.(apps),
+            docdb_id = docdb_id.(apps),
+            lang = language.(apps))
+        nrow(df)
+    end
+    t_apps = @timed SQLite.load!(select(df, 1:9), db, "applications", on_conflict = "IGNORE")
+    t_npl = @timed bulk_insert_npl_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, NPLCitation()), apps))
+    t_cit = @timed bulk_insert_patent_citations!(db, lens_ids, map(app -> PatentsBase.citations(app, PatentCitation()), apps))
+    t_class = @timed bulk_insert_classifications!(db, lens_ids,
         map(app -> classification(IPC(), app), apps),
         map(app -> classification(CPC(), app), apps))
-    bulk_insert_titles!(db, lens_ids, map(app -> gather_all(title(app)), apps))
-    bulk_insert_abstracts!(db, lens_ids, map(app -> gather_all(app.abstract), apps))
-    bulk_insert_fulltexts!(db, lens_ids, map(app -> app.description, apps))
-    bulk_insert_claims!(db, lens_ids, map(app -> gather_all_localized(app.claims), apps))
-    bulk_insert_applicants!(db, lens_ids, PatentsBase.applicants.(apps))
-    bulk_insert_inventors!(db, lens_ids, map(app -> inventors(app.biblio.parties), apps))
-    bulk_insert_family_memberships!(db, apps)
+    t_title = @timed bulk_insert_titles!(db, lens_ids, map(app -> gather_all(title(app)), apps))
+    t_abstr = @timed bulk_insert_abstracts!(db, lens_ids, map(app -> gather_all(app.abstract), apps))
+    t_fullt = @timed bulk_insert_fulltexts!(db, lens_ids, map(app -> app.description, apps))
+    t_claim = @timed bulk_insert_claims!(db, lens_ids, map(app -> gather_all_localized(app.claims), apps))
+    t_appli = @timed bulk_insert_applicants!(db, lens_ids, PatentsBase.applicants.(apps))
+    t_inv = @timed bulk_insert_inventors!(db, lens_ids, map(app -> inventors(app.biblio.parties), apps))
+    t_fam = @timed bulk_insert_family_memberships!(db, apps)
+    (
+        derivedf = t_derivedf,
+        apps = t_apps,
+        npl = t_npl,
+        cit = t_cit,
+        class = t_class,
+        title = t_title,
+        abstr = t_abstr,
+        fullt = t_fullt,
+        claim = t_claim,
+        appli = t_appli,
+        inv = t_inv,
+        fam = t_fam
+    )
 end
 
 function bulk_insert_npl_citations!(db, lens_ids, npl_citations)
@@ -42,7 +58,7 @@ function bulk_insert_npl_citations!(db, lens_ids, npl_citations)
     df.lens_id = map(cit -> cit.nplcit.lens_id, df.npl_citations)
     df.text = map(cit -> cit.nplcit.text, df.npl_citations)
     df.ext_ids = PatentsBase.external_ids.(df.npl_citations)
-    SQLite.load!(select(df, Not([:npl_citations, :ext_ids])), db, "npl_citations")
+    SQLite.load!(select(df, Not([:npl_citations, :ext_ids])), db, "npl_citations", on_conflict = "IGNORE")
     bulk_insert_npl_citations_external_ids!(db, df)
 end
 

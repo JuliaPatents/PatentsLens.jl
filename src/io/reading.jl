@@ -61,41 +61,66 @@ Optional keyword arguments:
 """
 function load_jsonl!(db::LensDB, path::String;
     chunk_size::Int = 5000, skip_on_error::Bool = false, rebuild_index::Bool = true)
-
-    rebuild_index && drop_index!(db.db)
-    bom = read(open(path, "r"), Char) == '\ufeff'
-    open(path, "r") do f
-        bom && read(f, Char)
-        apps = LensApplication[]
-        line = 1
-        chunk = 1
-        println("Processing chunk #$chunk (app #1 - #$chunk_size)")
-        while !eof(f)
-            try
-                app_raw = readline(f)
-                app = JSON3.read(app_raw, LensApplication)
-                push!(apps, app)
-            catch e
-                println(stderr, "Encountered parsing error in file $path at line $line:")
-                if skip_on_error
-                    showerror(stderr, e)
-                    println(stderr)
-                else
-                    rethrow()
+    t_total = @timed begin
+        t_idx1 = @timed(rebuild_index && drop_index!(db.db))
+        bom = read(open(path, "r"), Char) == '\ufeff'
+        t_reads = []
+        t_inserts = []
+        t_cleanups = []
+        open(path, "r") do f
+            bom && read(f, Char)
+            apps = LensApplication[]
+            line = 1
+            chunk = 1
+            t = time()
+            println("Processing chunk #$chunk (app #1 - #$chunk_size)")
+            while !eof(f)
+                try
+                    app_raw = readline(f)
+                    app = JSON3.read(app_raw, LensApplication)
+                    push!(apps, app)
+                catch e
+                    println(stderr, "Encountered parsing error in file $path at line $line:")
+                    if skip_on_error
+                        showerror(stderr, e)
+                        println(stderr)
+                    else
+                        rethrow()
+                    end
                 end
+                if mod(line, chunk_size) == 0
+                    push!(t_reads, time() - t)
+                    t_insert = @timed get_connection(db) do cn
+                        bulk_insert_apps!(cn, apps)
+                    end
+                    t_cleanup = @timed begin
+                        apps = LensApplication[]
+                        chunk = chunk + 1
+                        GC.safepoint()
+                    end
+                    push!(t_inserts, t_insert)
+                    push!(t_cleanups, t_cleanup)
+                    t = time()
+                    println("Processing chunk #$chunk (app #$(1 + (chunk - 1) * chunk_size) - #$(chunk * chunk_size))")
+                end
+                line = line + 1
             end
-            if mod(line, chunk_size) == 0
-                bulk_insert_apps!(db.db, apps)
-                apps = LensApplication[]
-                chunk = chunk + 1
-                println("Processing chunk #$chunk (app #$(1 + (chunk - 1) * chunk_size) - #$(chunk * chunk_size))")
+            if length(apps) != 0
+                push!(t_reads, time() - t)
+                t_insert = @timed get_connection(db) do cn
+                    bulk_insert_apps!(cn, apps)
+                end
+                t_cleanup = @timed begin
+                    apps = LensApplication[]
+                    chunk = chunk + 1
+                    GC.safepoint()
+                end
+                push!(t_inserts, t_insert)
+                push!(t_cleanups, t_cleanup)
             end
-            line = line + 1
         end
-        if length(apps) != 0
-            bulk_insert_apps!(db.db, apps)
-        end
+        # aggregate_family_citations!(db.db)
+        t_idx2 = @timed(rebuild_index && get_connection(build_index!, db))
     end
-    # aggregate_family_citations!(db.db)
-    rebuild_index && build_index!(db.db)
+    (total = t_total, read = t_reads, insert = t_inserts, clean = t_cleanups, idx = [t_idx1, t_idx2])
 end
