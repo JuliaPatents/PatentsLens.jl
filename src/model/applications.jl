@@ -28,7 +28,7 @@ struct LensApplication <: AbstractApplication
     jurisdiction::String
     doc_number::String
     kind::String
-    date_published::Date
+    date_published::Unioni{Date, Nothing}
     doc_key::String
     docdb_id::Union{Int, Nothing}
     lang::Union{String, Nothing}
