@@ -65,7 +65,7 @@ PatentsBase.sourceid(a::LensApplication)::String = a.lens_id
 PatentsBase.jurisdiction(a::LensApplication)::String = a.jurisdiction
 PatentsBase.doc_number(a::LensApplication)::String = a.doc_number
 PatentsBase.kind(a::LensApplication)::String = a.kind
-PatentsBase.date_published(a::LensApplication)::Date = a.date_published
+PatentsBase.date_published(a::LensApplication) = a.date_published
 
 PatentsBase.title(a::LensApplication) = a.biblio.invention_title
 PatentsBase.title(a::LensApplication, lang::String) = text(title(a), lang)
