@@ -15,7 +15,7 @@
             PatentsLens.load_jsonl!(g_db, "data/biopoly-reduced.jsonl")
         end
         @test DataFrame(DBInterface.execute(PatentsLens.db(g_db),
-            "SELECT count(lens_id) FROM applications"))[1, 1] == 137
+            "SELECT count(lens_id) FROM applications"))[1, 1] == 139
     end
 
     @testset "JSONL to database, minimum viable file" begin

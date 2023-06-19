@@ -26,7 +26,7 @@
         global g_fams = aggregate_families(g_apps)
 
         @test g_fams isa Vector{<:AbstractFamily}
-        @test length(g_fams) == 129
+        @test length(g_fams) == 130
 
         @test applications.(g_fams) isa Vector{<:Vector{<:AbstractApplication}}
 
@@ -130,9 +130,9 @@
         @test citations(g_apps[3], NPLCitation()) |> first |> external_ids isa Vector{String}
         @test citations(g_apps[3], NPLCitation()) |> first |> external_ids |> isempty
         @test citations(g_apps[3], NPLCitation()) |> first |> doi |> isnothing
-        @test citations(g_apps[11], NPLCitation()) |> first |> external_ids isa Vector{String}
-        @test citations(g_apps[11], NPLCitation()) |> first |> external_ids |> length == 3
-        @test citations(g_apps[11], NPLCitation()) |> first |> doi isa String
+        @test citations(g_apps[12], NPLCitation()) |> first |> external_ids isa Vector{String}
+        @test citations(g_apps[12], NPLCitation()) |> first |> external_ids |> length == 3
+        @test citations(g_apps[12], NPLCitation()) |> first |> doi isa String
 
         @test citations(g_fams[1], NPLCitation()) |> length == 8
 

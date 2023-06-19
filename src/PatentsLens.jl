@@ -8,6 +8,7 @@ using StructTypes
 using SQLite
 using DataFrames
 using Graphs
+using DuckDB
 
 # Type exports
 # Content
@@ -44,6 +45,9 @@ include("sqlite/storage.jl")
 include("sqlite/filters.jl")
 include("sqlite/retrieval.jl")
 include("sqlite/applicants.jl")
+
+include("duckdb/schema.jl")
+include("duckdb/loading.jl")
 
 include("io/output.jl")
 include("io/reading.jl")

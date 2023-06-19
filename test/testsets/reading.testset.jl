@@ -3,7 +3,7 @@
     @testset "JSONL to object model, intact file" begin
         global g_apps = PatentsLens.read_jsonl("data/biopoly-reduced.jsonl")
         @test isa(g_apps, Vector{LensApplication})
-        @test length(g_apps) == 138
+        @test length(g_apps) == 139
     end
 
     @testset "JSONL to object model, minimum viable file" begin

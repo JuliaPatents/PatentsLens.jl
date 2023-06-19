@@ -40,11 +40,11 @@
 
         apps2 = applications(g_db)
         @test apps2 isa Vector{LensApplication}
-        @test length(apps2) == 137
+        @test length(apps2) == 139
 
         fams2 = families(g_db)
         @test fams2 isa Vector{LensFamily}
-        @test length(fams2) == 128
+        @test length(fams2) == 130
 
     end
 

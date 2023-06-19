@@ -2,40 +2,40 @@
 
     @testset "AllFilter" begin
         @test length(applications(empty_db, AllFilter())) == 0
-        @test length(applications(g_db, AllFilter())) == 137
+        @test length(applications(g_db, AllFilter())) == 139
         @test length(families(empty_db, AllFilter())) == 0
-        @test length(families(g_db, AllFilter())) == 128
+        @test length(families(g_db, AllFilter())) == 130
     end
 
     @testset "ClassificationFilter" begin
 
         f1 = ClassificationFilter(CPC(), Section(), [CPCSymbol("B")])
         @test length(applications(empty_db, f1)) == 0
-        @test length(applications(g_db, f1)) == 37
+        @test length(applications(g_db, f1)) == 38
         @test length(families(empty_db, f1)) == 0
-        @test length(families(g_db, f1)) == 32
+        @test length(families(g_db, f1)) == 33
 
         f2 = ClassificationFilter(CPC(), Section(), [CPCSymbol("C")])
         @test length(applications(g_db, f2)) >= 61
         @test length(families(g_db, f2)) >= 58
 
         f3 = ClassificationFilter(CPC(), Section(), [CPCSymbol("B"), CPCSymbol("Cxxxxxx")])
-        @test length(families(g_db, f3)) == 90
+        @test length(families(g_db, f3)) == 91
 
         f4 = ClassificationFilter(CPC(), Class(), [CPCSymbol("B01"), CPCSymbol("C08xxxx")])
-        @test length(families(g_db, f4)) == 65
+        @test length(families(g_db, f4)) == 66
 
         f5 = ClassificationFilter(CPC(), Subclass(), [CPCSymbol("C08Gxxxx"), CPCSymbol("C08K")])
-        @test length(families(g_db, f5)) == 32
+        @test length(families(g_db, f5)) == 33
 
         f6 = ClassificationFilter(CPC(), Maingroup(), [CPCSymbol("C08G63/x"), CPCSymbol("C08K5/")])
-        @test length(families(g_db, f6)) == 25
+        @test length(families(g_db, f6)) == 26
 
         f7 = ClassificationFilter(CPC(), Subgroup(), [CPCSymbol("C08G63/78"), CPCSymbol("C08K5/29")])
         @test length(families(g_db, f7)) == 13
 
         f8 = ClassificationFilter(IPC(), Section(), [IPCSymbol("B")])
-        @test length(families(g_db, f8)) == 32
+        @test length(families(g_db, f8)) == 33
 
     end
 
