@@ -1,6 +1,6 @@
 const PATENTSLENS_DUCKDB_SCHEMA_VERSION = 1
 
-const PATENTSLENS_DUCKDB_SCHEMA = [
+const PATENTSLENS_DUCKDB_SCHEMA_APPS = [
     "lens_id" => "VARCHAR PRIMARY KEY",
     "publication_type" => "VARCHAR",
     "jurisdiction" => "VARCHAR",
@@ -110,6 +110,14 @@ const PATENTSLENS_DUCKDB_SCHEMA = [
         )
     )"""
 ]
+
+const PATENTSLENS_DUCKDB_SCHEMA_FAMS =
+    """CREATE TABLE IF NOT EXISTS families (
+        earliest_lens_id VARCHAR,
+        earliest_date DATE,
+        lens_id VARCHAR,
+        PRIMARY KEY (earliest_lens_id, lens_id)
+    )"""
 
 schema_fmt1(cols) = join((col -> first(col) * " " * last(col)).(cols), ",\n")
 schema_fmt2(cols) = join((col -> first(col) * ": '" * last(col) * "'").(cols), ",\n")
