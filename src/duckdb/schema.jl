@@ -1,5 +1,8 @@
 const PATENTSLENS_DUCKDB_SCHEMA_VERSION = 1
 
+schema_fmt1(cols) = join((col -> first(col) * " " * last(col)).(cols), ",\n")
+schema_fmt2(cols) = join((col -> first(col) * ": '" * last(col) * "'").(cols), ",\n")
+
 const PATENTSLENS_DUCKDB_SCHEMA_APPS = [
     "lens_id" => "VARCHAR PRIMARY KEY",
     "publication_type" => "VARCHAR",
@@ -119,5 +122,15 @@ const PATENTSLENS_DUCKDB_SCHEMA_FAMS =
         PRIMARY KEY (earliest_lens_id, lens_id)
     )"""
 
-schema_fmt1(cols) = join((col -> first(col) * " " * last(col)).(cols), ",\n")
-schema_fmt2(cols) = join((col -> first(col) * ": '" * last(col) * "'").(cols), ",\n")
+const PATENTSLENS_DUCKDB_SCHEMA_DERIVED = [
+    """CREATE TABLE IF NOT EXISTS cpc (
+        lens_id VARCHAR,
+        symbol VARCHAR,
+        PRIMARY KEY(lens_id, symbol)
+    )""",
+    """CREATE TABLE IF NOT EXISTS ipc (
+        lens_id VARCHAR,
+        symbol VARCHAR,
+        PRIMARY KEY(lens_id, symbol)
+    )"""
+]

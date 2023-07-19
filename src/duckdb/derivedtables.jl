@@ -41,3 +41,18 @@ function update_families!(db::DuckDB.DB)
     DBInterface.execute(db, PATENTSLENS_DUCKDB_SCHEMA_FAMS)
     DBInterface.execute(db, "INSERT OR IGNORE INTO families SELECT * FROM fams_new")
 end
+
+function update_derived_tables!(db::DuckDB.DB)
+    DBInterface.execute(db, """
+        INSERT OR IGNORE INTO cpc
+        SELECT DISTINCT lens_id,
+        UNNEST([c.symbol for c in biblio.classifications_cpc.classifications]) AS symbol
+        FROM applications
+    """)
+    DBInterface.execute(db, """
+        INSERT OR IGNORE INTO ipc
+        SELECT DISTINCT lens_id,
+        UNNEST([c.symbol for c in biblio.classifications_ipcr.classifications]) AS symbol
+        FROM applications
+    """)
+end

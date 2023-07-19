@@ -1,58 +1,74 @@
-struct LensLocalizedText # helper type, do not export
+@kwdef struct LensLocalizedText # helper type, do not export
     text::String
     lang::Union{String, Nothing}
 end
+
 StructTypes.StructType(::Type{LensLocalizedText}) = StructTypes.Struct()
+Base.convert(::Type{LensLocalizedText}, nt::NamedTuple) = LensLocalizedText(; nt...)
 
 """Struct representing the title of a patent application in the Lens.org format"""
-struct LensTitle <: AbstractTitle
+@kwdef struct LensTitle <: AbstractTitle
     title::Vector{LensLocalizedText}
 end
+
 StructTypes.StructType(::Type{LensTitle}) = StructTypes.CustomStruct()
 StructTypes.lower(t::LensTitle) = t.title
 StructTypes.lowertype(::Type{LensTitle}) = Vector{LensLocalizedText}
 StructTypes.construct(::Type{LensTitle}, v::Vector{LensLocalizedText}) = LensTitle(v)
+Base.convert(::Type{LensTitle}, nts::Vector) = LensTitle(nts)
 
 """Struct representing the abstract or short description of a patent application in the Lens.org format"""
-struct LensAbstract <: AbstractShortDescription
+@kwdef struct LensAbstract <: AbstractShortDescription
     abstract::Vector{LensLocalizedText}
 end
+
 StructTypes.StructType(::Type{LensAbstract}) = StructTypes.CustomStruct()
 StructTypes.lower(a::LensAbstract) = a.abstract
 StructTypes.lowertype(::Type{LensAbstract}) = Vector{LensLocalizedText}
 StructTypes.construct(::Type{LensAbstract}, v::Vector{LensLocalizedText}) = LensAbstract(v)
+Base.convert(::Type{LensAbstract}, nts::Vector) = LensAbstract(nts)
 
 """Struct representing the full text of a patent application in the Lens.org format"""
-struct LensFulltext <: AbstractFulltext
+@kwdef struct LensFulltext <: AbstractFulltext
     text::String
     lang::Union{String, Nothing}
 end
-StructTypes.StructType(::Type{LensFulltext}) = StructTypes.Struct()
 
-struct LensRawClaim # Helper type, do not export
+StructTypes.StructType(::Type{LensFulltext}) = StructTypes.Struct()
+Base.convert(::Type{LensFulltext}, nt::NamedTuple) = LensFulltext(; nt...)
+
+@kwdef struct LensRawClaim # Helper type, do not export
     claim_text::Vector{String}
 end
-StructTypes.StructType(::Type{LensRawClaim}) = StructTypes.Struct()
 
-struct LensLocalizedClaims # Helper type, do not export
+StructTypes.StructType(::Type{LensRawClaim}) = StructTypes.Struct()
+Base.convert(::Type{LensRawClaim}, nt::NamedTuple) = LensRawClaim(; nt...)
+
+@kwdef struct LensLocalizedClaims # Helper type, do not export
     claims::Vector{LensRawClaim}
     lang::Union{String, Nothing}
 end
-StructTypes.StructType(::Type{LensLocalizedClaims}) = StructTypes.Struct()
 
-struct LensClaims # Helper type, do not export
+StructTypes.StructType(::Type{LensLocalizedClaims}) = StructTypes.Struct()
+Base.convert(::Type{LensLocalizedClaims}, nt::NamedTuple) = LensLocalizedClaims(; nt...)
+
+@kwdef struct LensClaims # Helper type, do not export
     claims::Vector{LensLocalizedClaims}
 end
+
 StructTypes.StructType(::Type{LensClaims}) = StructTypes.CustomStruct()
 StructTypes.lower(c::LensClaims) = c.claims
 StructTypes.lowertype(::Type{LensClaims}) = Vector{LensLocalizedClaims}
 StructTypes.construct(::Type{LensClaims}, v::Vector{LensLocalizedClaims}) = LensClaims(v)
+Base.convert(::Type{LensClaims}, nts::Vector) = LensClaims(nts)
 
 """ Struct representing a patent claim in the Lens.org format. """
-struct LensClaim <: AbstractClaim
+@kwdef struct LensClaim <: AbstractClaim
     claim::Vector{LensLocalizedText}
 end
+
 StructTypes.StructType(::Type{LensClaim}) = StructTypes.Struct()
+Base.convert(::Type{LensClaim}, nt::NamedTuple) = LensClaim(; nt...)
 
 text(::Nothing) = nothing
 text(lt::LensLocalizedText) = lt.text

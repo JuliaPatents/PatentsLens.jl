@@ -6,6 +6,9 @@ function initduckdb!(location::String)::DuckDB.DB
         );
     """)
     DBInterface.execute(db, PATENTSLENS_DUCKDB_SCHEMA_FAMS)
+    for view in PATENTSLENS_DUCKDB_SCHEMA_DERIVED
+        DBInterface.execute(db, view)
+    end
     db
 end
 
@@ -20,4 +23,6 @@ function load_jsonl!(db::DuckDB.DB, path::String, ignore_fulltext::Bool = false)
                 }
             )
     """, [path])
+    PatentsLens.update_families!(db)
+    PatentsLens.update_derived_tables!(db)
 end

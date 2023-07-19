@@ -48,7 +48,9 @@ include("sqlite/applicants.jl")
 
 include("duckdb/schema.jl")
 include("duckdb/loading.jl")
-include("duckdb/families.jl")
+include("duckdb/derivedtables.jl")
+include("duckdb/filters.jl")
+include("duckdb/retrieval.jl")
 
 include("io/output.jl")
 include("io/reading.jl")

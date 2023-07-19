@@ -1,19 +1,23 @@
 
 """Struct implementation of `PatentsBase.AbstractApplicationID` in the Lens.org format"""
-struct LensDocumentID <: AbstractApplicationID
+@kwdef struct LensDocumentID <: AbstractApplicationID
     jurisdiction::String
     doc_number::String
     kind::Union{String, Nothing}
     date::Union{Date, Nothing}
 end
+
 StructTypes.StructType(::Type{LensDocumentID}) = StructTypes.Struct()
+Base.convert(::Type{LensDocumentID}, nt::NamedTuple) = LensDocumentID(; nt...)
 
 """Struct representing a reference to a patent application in the Lens.org format"""
-struct LensApplicationReference <: AbstractApplicationID
+@kwdef struct LensApplicationReference <: AbstractApplicationID
     document_id::LensDocumentID
     lens_id::Union{String, Nothing}
 end
+
 StructTypes.StructType(::Type{LensApplicationReference}) = StructTypes.Struct()
+Base.convert(::Type{LensApplicationReference}, nt::NamedTuple) = LensApplicationReference(; nt...)
 
 document_id(r::LensApplicationReference) = r.document_id
 lens_id(r::LensApplicationReference) = r.lens_id

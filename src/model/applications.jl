@@ -1,4 +1,4 @@
-struct LensBiblio # helper type, do not export
+@kwdef struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
     parties::LensParties
     references_cited::Union{LensCitations, Nothing}
@@ -6,23 +6,29 @@ struct LensBiblio # helper type, do not export
     classifications_ipcr::Union{LensIPCRClassifications, Nothing}
     classifications_cpc::Union{LensCPCClassifications, Nothing}
 end
-StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 
-struct LensFamilyReference # Helper type, do not export
+StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
+Base.convert(::Type{LensBiblio}, nt::NamedTuple) = LensBiblio(; nt...)
+
+@kwdef struct LensFamilyReference # Helper type, do not export
     members::Vector{LensApplicationReference}
 end
-StructTypes.StructType(::Type{LensFamilyReference}) = StructTypes.Struct()
 
-struct LensFamilies # Helper type, do not export
+StructTypes.StructType(::Type{LensFamilyReference}) = StructTypes.Struct()
+Base.convert(::Type{LensFamilyReference}, nt::NamedTuple) = LensFamilyReference(; nt...)
+
+@kwdef struct LensFamilies # Helper type, do not export
     simple_family::Union{LensFamilyReference, Nothing}
     extended_family::Union{LensFamilyReference, Nothing}
 end
+
 StructTypes.StructType(::Type{LensFamilies}) = StructTypes.Struct()
+Base.convert(::Type{LensFamilies}, nt::NamedTuple) = LensFamilies(; nt...)
 
 """
 Struct representing a patent application retrieved from Lens.org.
 """
-struct LensApplication <: AbstractApplication
+@kwdef struct LensApplication <: AbstractApplication
     lens_id::String
     publication_type::String
     jurisdiction::String
@@ -38,7 +44,10 @@ struct LensApplication <: AbstractApplication
     description::Union{LensFulltext, Nothing}
     families::LensFamilies
 end
+
 StructTypes.StructType(::Type{LensApplication}) = StructTypes.Struct()
+
+Base.convert(::Type{Union{T, Nothing}}, ::Missing) where {T} = nothing
 
 """Return a `String` with the document type of application `a`"""
 publication_type(a::LensApplication)::String = a.publication_type
