@@ -1,5 +1,5 @@
 """Struct representing a patent citation in the Lens.org format"""
-@kwdef struct LensPatentCitation <: AbstractPatentCitation
+Base.@kwdef struct LensPatentCitation <: AbstractPatentCitation
     sequence::Union{Int, Nothing}
     patcit::LensApplicationReference
     cited_phase::Union{String, Nothing}
@@ -7,7 +7,7 @@ end
 
 StructTypes.StructType(::Type{LensPatentCitation}) = StructTypes.Struct()
 
-@kwdef struct LensNPLCitationInner # helper type, do not export
+Base.@kwdef struct LensNPLCitationInner # helper type, do not export
     text::String
     lens_id::Union{String, Nothing}
     external_ids::Union{Vector{String}, Nothing}
@@ -16,7 +16,7 @@ end
 StructTypes.StructType(::Type{LensNPLCitationInner}) = StructTypes.Struct()
 
 """Struct representing a non-patent literature (NPL) citation in the Lens.org format"""
-@kwdef struct LensNPLCitation <: AbstractNPLCitation
+Base.@kwdef struct LensNPLCitation <: AbstractNPLCitation
     sequence::Union{Int, Nothing}
     nplcit::LensNPLCitationInner
     cited_phase::Union{String, Nothing}
@@ -24,7 +24,7 @@ end
 
 StructTypes.StructType(::Type{LensNPLCitation}) = StructTypes.Struct()
 
-@kwdef struct LensCitations # helper type, do not export
+Base.@kwdef struct LensCitations # helper type, do not export
     citations::Union{Nothing, Vector{Union{LensPatentCitation, LensNPLCitation}}}
 end
 
@@ -46,7 +46,7 @@ function Base.convert(::Type{LensCitations}, nt::NamedTuple)
 end
 
 """Struct representing a forward citation ("cited by"-entry) in the Lens.org format"""
-@kwdef struct LensForwardCitation <: AbstractPatentCitation
+Base.@kwdef struct LensForwardCitation <: AbstractPatentCitation
     ref::LensApplicationReference
 end
 
@@ -56,7 +56,7 @@ StructTypes.lowertype(::Type{LensForwardCitation}) = LensApplicationReference
 StructTypes.construct(::Type{LensForwardCitation}, ar::LensApplicationReference) = LensForwardCitation(ar)
 Base.convert(::Type{LensForwardCitation}, nt::NamedTuple) = LensForwardCitation(LensApplicationReference(; nt...))
 
-@kwdef struct LensForwardCitations # helper type, do not export
+Base.@kwdef struct LensForwardCitations # helper type, do not export
     patents::Union{Vector{LensForwardCitation}, Nothing}
 end
 

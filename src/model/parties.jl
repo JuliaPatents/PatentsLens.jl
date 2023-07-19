@@ -1,4 +1,4 @@
-@kwdef struct LensExtractedName # helper type, do not export
+Base.@kwdef struct LensExtractedName # helper type, do not export
     value::Union{String, Nothing}
 end
 
@@ -6,7 +6,7 @@ StructTypes.StructType(::Type{LensExtractedName}) = StructTypes.Struct()
 Base.convert(::Type{LensExtractedName}, nt::NamedTuple) = LensExtractedName(; nt...)
 
 """Struct representing a patent applicant in the Lens.org format"""
-@kwdef struct LensApplicant <: AbstractApplicant
+Base.@kwdef struct LensApplicant <: AbstractApplicant
     residence::Union{String, Nothing}
     extracted_name::Union{LensExtractedName, Nothing}
     id::Union{Int, Nothing} = nothing
@@ -16,7 +16,7 @@ StructTypes.StructType(::Type{LensApplicant}) = StructTypes.Struct()
 Base.convert(::Type{LensApplicant}, nt::NamedTuple) = LensApplicant(; nt...)
 
 """Struct representing a patent inventor in the Lens.org format"""
-@kwdef struct LensInventor <: AbstractInventor
+Base.@kwdef struct LensInventor <: AbstractInventor
     residence::Union{String, Nothing}
     extracted_name::Union{LensExtractedName, Nothing}
     id::Union{Int, Nothing} = nothing
@@ -25,7 +25,7 @@ end
 StructTypes.StructType(::Type{LensInventor}) = StructTypes.Struct()
 Base.convert(::Type{LensInventor}, nt::NamedTuple) = LensInventor(; nt...)
 
-@kwdef struct LensParties # helper type, do not export
+Base.@kwdef struct LensParties # helper type, do not export
     applicants::Union{Vector{LensApplicant}, Nothing}
     inventors::Union{Vector{LensInventor}, Nothing}
 end

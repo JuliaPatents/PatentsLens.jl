@@ -1,5 +1,5 @@
 """Struct representing an aggregated patent family in the Lens.org format"""
-@kwdef struct LensFamily <: AbstractFamily
+Base.@kwdef struct LensFamily <: AbstractFamily
     members::Vector{LensApplication}
 end
 StructTypes.StructType(::Type{LensFamily}) = StructTypes.CustomStruct()

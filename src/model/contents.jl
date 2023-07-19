@@ -1,4 +1,4 @@
-@kwdef struct LensLocalizedText # helper type, do not export
+Base.@kwdef struct LensLocalizedText # helper type, do not export
     text::String
     lang::Union{String, Nothing}
 end
@@ -7,7 +7,7 @@ StructTypes.StructType(::Type{LensLocalizedText}) = StructTypes.Struct()
 Base.convert(::Type{LensLocalizedText}, nt::NamedTuple) = LensLocalizedText(; nt...)
 
 """Struct representing the title of a patent application in the Lens.org format"""
-@kwdef struct LensTitle <: AbstractTitle
+Base.@kwdef struct LensTitle <: AbstractTitle
     title::Vector{LensLocalizedText}
 end
 
@@ -18,7 +18,7 @@ StructTypes.construct(::Type{LensTitle}, v::Vector{LensLocalizedText}) = LensTit
 Base.convert(::Type{LensTitle}, nts::Vector) = LensTitle(nts)
 
 """Struct representing the abstract or short description of a patent application in the Lens.org format"""
-@kwdef struct LensAbstract <: AbstractShortDescription
+Base.@kwdef struct LensAbstract <: AbstractShortDescription
     abstract::Vector{LensLocalizedText}
 end
 
@@ -29,7 +29,7 @@ StructTypes.construct(::Type{LensAbstract}, v::Vector{LensLocalizedText}) = Lens
 Base.convert(::Type{LensAbstract}, nts::Vector) = LensAbstract(nts)
 
 """Struct representing the full text of a patent application in the Lens.org format"""
-@kwdef struct LensFulltext <: AbstractFulltext
+Base.@kwdef struct LensFulltext <: AbstractFulltext
     text::String
     lang::Union{String, Nothing}
 end
@@ -37,14 +37,14 @@ end
 StructTypes.StructType(::Type{LensFulltext}) = StructTypes.Struct()
 Base.convert(::Type{LensFulltext}, nt::NamedTuple) = LensFulltext(; nt...)
 
-@kwdef struct LensRawClaim # Helper type, do not export
+Base.@kwdef struct LensRawClaim # Helper type, do not export
     claim_text::Vector{String}
 end
 
 StructTypes.StructType(::Type{LensRawClaim}) = StructTypes.Struct()
 Base.convert(::Type{LensRawClaim}, nt::NamedTuple) = LensRawClaim(; nt...)
 
-@kwdef struct LensLocalizedClaims # Helper type, do not export
+Base.@kwdef struct LensLocalizedClaims # Helper type, do not export
     claims::Vector{LensRawClaim}
     lang::Union{String, Nothing}
 end
@@ -52,7 +52,7 @@ end
 StructTypes.StructType(::Type{LensLocalizedClaims}) = StructTypes.Struct()
 Base.convert(::Type{LensLocalizedClaims}, nt::NamedTuple) = LensLocalizedClaims(; nt...)
 
-@kwdef struct LensClaims # Helper type, do not export
+Base.@kwdef struct LensClaims # Helper type, do not export
     claims::Vector{LensLocalizedClaims}
 end
 
@@ -63,7 +63,7 @@ StructTypes.construct(::Type{LensClaims}, v::Vector{LensLocalizedClaims}) = Lens
 Base.convert(::Type{LensClaims}, nts::Vector) = LensClaims(nts)
 
 """ Struct representing a patent claim in the Lens.org format. """
-@kwdef struct LensClaim <: AbstractClaim
+Base.@kwdef struct LensClaim <: AbstractClaim
     claim::Vector{LensLocalizedText}
 end
 

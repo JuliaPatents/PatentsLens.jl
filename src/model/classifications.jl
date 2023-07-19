@@ -1,4 +1,4 @@
-@kwdef struct LensIPCRClassifications
+Base.@kwdef struct LensIPCRClassifications
     classifications::Union{Vector{IPCSymbol}, Nothing}
 end
 
@@ -6,7 +6,7 @@ StructTypes.StructType(::Type{LensIPCRClassifications}) = StructTypes.Struct()
 Base.convert(::Type{LensIPCRClassifications}, nt::NamedTuple) = LensIPCRClassifications(; nt...)
 Base.convert(::Type{IPCSymbol}, nt::NamedTuple) = IPCSymbol(nt.symbol)
 
-@kwdef struct LensCPCClassifications
+Base.@kwdef struct LensCPCClassifications
     classifications::Union{Vector{CPCSymbol}, Nothing}
 end
 

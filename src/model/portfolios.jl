@@ -1,5 +1,5 @@
 """Struct representing a party's portfolio of patent applications"""
-@kwdef struct LensPortfolio <: AbstractPortfolio
+Base.@kwdef struct LensPortfolio <: AbstractPortfolio
     owner::AbstractParty
     applications::Union{Vector{LensApplication}, Nothing}
     families::Union{Vector{LensFamily}, Nothing}

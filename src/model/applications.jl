@@ -1,4 +1,4 @@
-@kwdef struct LensBiblio # helper type, do not export
+Base.@kwdef struct LensBiblio # helper type, do not export
     invention_title::Union{LensTitle, Nothing}
     parties::LensParties
     references_cited::Union{LensCitations, Nothing}
@@ -10,14 +10,14 @@ end
 StructTypes.StructType(::Type{LensBiblio}) = StructTypes.Struct()
 Base.convert(::Type{LensBiblio}, nt::NamedTuple) = LensBiblio(; nt...)
 
-@kwdef struct LensFamilyReference # Helper type, do not export
+Base.@kwdef struct LensFamilyReference # Helper type, do not export
     members::Vector{LensApplicationReference}
 end
 
 StructTypes.StructType(::Type{LensFamilyReference}) = StructTypes.Struct()
 Base.convert(::Type{LensFamilyReference}, nt::NamedTuple) = LensFamilyReference(; nt...)
 
-@kwdef struct LensFamilies # Helper type, do not export
+Base.@kwdef struct LensFamilies # Helper type, do not export
     simple_family::Union{LensFamilyReference, Nothing}
     extended_family::Union{LensFamilyReference, Nothing}
 end
@@ -28,7 +28,7 @@ Base.convert(::Type{LensFamilies}, nt::NamedTuple) = LensFamilies(; nt...)
 """
 Struct representing a patent application retrieved from Lens.org.
 """
-@kwdef struct LensApplication <: AbstractApplication
+Base.@kwdef struct LensApplication <: AbstractApplication
     lens_id::String
     publication_type::String
     jurisdiction::String
