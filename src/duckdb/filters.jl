@@ -31,6 +31,31 @@ function duckdb_query_select_applications(filter::ClassificationFilter)
         map(s -> symbol(filter.level, s) * "%", filter.symbols))
 end
 
+function duckdb_query_select_applications(filter::ContentFilter)
+    if isempty(filter.languages)
+        UnboundQuery("""
+            SELECT DISTINCT id.lens_id FROM (
+                SELECT *, fts_main_$(db_key(filter.field)).match_bm25(id, ?) AS score
+                FROM $(db_key(filter.field))
+                WHERE score IS NOT NULL
+            )""",
+            [filter.search_query])
+    else
+        UnboundQuery("""
+            SELECT DISTINCT id.lens_id FROM (
+                SELECT *, fts_main_$(db_key(filter.field)).match_bm25(id, ?) AS score
+                FROM $(db_key(filter.field))
+                WHERE score IS NOT NULL
+                AND id.lang IN $(list_placeholder(length(filter.languages)))
+            )""",
+            vcat([filter.search_query], filter.languages))
+    end
+end
+
+function duckdb_query_select_applications(filter::TaxonomicFilter)
+    query_select_applications(filter)
+end
+
 function duckdb_query_select_applications(filter::IntersectionFilter)
     qa = duckdb_query_select_applications(filter.a)
     qb = duckdb_query_select_applications(filter.b)

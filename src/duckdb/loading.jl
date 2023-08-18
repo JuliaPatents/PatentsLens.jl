@@ -1,5 +1,7 @@
 function initduckdb!(location::String)::DuckDB.DB
     db = DBInterface.connect(DuckDB.DB, location)
+    DBInterface.execute(db, "INSTALL 'fts';")
+    DBInterface.execute(db, "LOAD 'fts';")
     DBInterface.execute(db, """
         CREATE TABLE IF NOT EXISTS applications (
             $(schema_fmt1(PATENTSLENS_DUCKDB_SCHEMA_APPS))
