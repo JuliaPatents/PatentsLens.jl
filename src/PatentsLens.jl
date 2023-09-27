@@ -55,7 +55,9 @@ include("duckdb/retrieval.jl")
 include("io/output.jl")
 include("io/reading.jl")
 
-include("landscapes/taxonomies.jl")
-include("landscapes/analyses.jl")
+include("landscapes/sqlite/taxonomies.jl")
+include("landscapes/sqlite/analyses.jl")
+include("landscapes/duckdb/taxonomies.jl")
+# include("landscapes/duckdb/analyses.jl")
 
 end
