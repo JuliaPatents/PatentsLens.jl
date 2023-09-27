@@ -47,17 +47,24 @@ end
 
 """
     load_jsonl!(db::LensDB, path::String, kwargs...)
+    load_jsonl!(db::DuckDB.DB, path::String, kwargs...)
 
-Read all application data from the Lens.org JSON lines data file at `path`, and store it in the  SQLite database `db`.
+Read all application data from the Lens.org JSON lines data file at `path`, and store it in the database `db`.
+Supported database types are `LensDB` (SQLite) and `DuckDB.DB`.
 The database must be set up with the proper table schema beforehand.
 
 Optional keyword arguments:
-* `chunk_size`: controls how many lines are read into memory before being bulk-inserted into the database.
-    Higher values will improve speed at the cost of requiring more memory.
 * `skip_on_error`: If true, loading process will not terminate when encountering a parsing error,
     but continue with the next record instead.
-* `rebuild_index`: If true (default), the search index for the database will be dropped and fully rebuilt instead of updating it.
+* `chunk_size` (SQLite only): controls how many lines are read into memory before being bulk-inserted into the database.
+    Higher values will improve speed at the cost of requiring more memory.
+* `rebuild_index` (SQLite only): If true (default), the search index for the database will be dropped and fully rebuilt instead of updating it.
     This tends to be faster when importing a large amount of data relative to the amount already in the database.
+* `ignore_fulltext` (DuckDB only): If true, application full text will not be imported. When importing to SQLite,
+    use `PatentsLens.ignore_fulltext!` to control this behavior instead.
+* `update_derived` (DuckDB only): If true (default), all derived tables for the database will be updated immediately after import.
+    When importing many different files in sequence, disabling this parameter for all but the final import may improve performance.
+    Note: Most DuckDB-based PatentsLens functions will not work properly without updated derived tables.
 """
 function load_jsonl!(db::LensDB, path::String;
     chunk_size::Int = 5000, skip_on_error::Bool = false, rebuild_index::Bool = true)

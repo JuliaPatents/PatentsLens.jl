@@ -19,14 +19,22 @@ function update_families!(db::DuckDB.DB)
                     members = fams[fam_id].members)
             end
         else
-            earliest_sibling_id = findmin(replace(row.sibling_dates, missing => Date("9999-12-31")))[2]
-            push!(fams, (
-                earliest_lens_id = row.siblings[earliest_sibling_id],
-                earliest_date = row.sibling_dates[earliest_sibling_id],
-                members = Set(row.siblings)))
-            fams_reverse[row.lens_id] = lastindex(fams)
-            for sibling in row.siblings
-                fams_reverse[sibling] = lastindex(fams)
+            if ismissing(row.sibling_dates)
+                push!(fams, (
+                    earliest_lens_id = row.lens_id,
+                    earliest_date = row.date_published,
+                    members = Set([row.lens_id])
+                ))
+            else
+                earliest_sibling_id = findmin(replace(row.sibling_dates, missing => Date("9999-12-31")))[2]
+                push!(fams, (
+                    earliest_lens_id = row.siblings[earliest_sibling_id],
+                    earliest_date = row.sibling_dates[earliest_sibling_id],
+                    members = Set(row.siblings)))
+                fams_reverse[row.lens_id] = lastindex(fams)
+                for sibling in row.siblings
+                    fams_reverse[sibling] = lastindex(fams)
+                end
             end
         end
     end

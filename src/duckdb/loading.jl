@@ -12,7 +12,7 @@ function initduckdb!(location::String)::DuckDB.DB
     db
 end
 
-function load_jsonl!(db::DuckDB.DB, path::String, ignore_fulltext::Bool = false)
+function load_jsonl!(db::DuckDB.DB, path::String; ignore_fulltext::Bool = false, skip_on_error = false, update_derived = true)
     DBInterface.execute(db, """
     INSERT OR IGNORE INTO applications BY NAME
         SELECT * $(ignore_fulltext ? "EXCLUDE (description)" : "") FROM
@@ -20,9 +20,10 @@ function load_jsonl!(db::DuckDB.DB, path::String, ignore_fulltext::Bool = false)
                 ?,
                 columns = {
                     $(schema_fmt2(PATENTSLENS_DUCKDB_SCHEMA_APPS))
-                }
+                },
+                ignore_errors = $(skip_on_error ? "true" : "false")
             )
     """, [path])
-    PatentsLens.update_families!(db)
-    PatentsLens.update_derived_tables!(db)
+    update_derived && PatentsLens.update_families!(db)
+    update_derived && PatentsLens.update_derived_tables!(db)
 end
