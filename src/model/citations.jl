@@ -2,7 +2,7 @@
 """Struct representing a patent citation in the Lens.org format"""
 struct LensPatentCitation <: AbstractPatentCitation
     sequence::Union{Int, Nothing}
-    patcit::LensApplicationReference
+    patcit::Union{LensApplicationReference, Nothing}
     cited_phase::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensPatentCitation}) = StructTypes.Struct()
@@ -17,7 +17,7 @@ StructTypes.StructType(::Type{LensNPLCitationInner}) = StructTypes.Struct()
 """Struct representing a non-patent literature (NPL) citation in the Lens.org format"""
 struct LensNPLCitation <: AbstractNPLCitation
     sequence::Union{Int, Nothing}
-    nplcit::LensNPLCitationInner
+    nplcit::Union{LensNPLCitationInner, Nothing}
     cited_phase::Union{String, Nothing}
 end
 StructTypes.StructType(::Type{LensNPLCitation}) = StructTypes.Struct()
